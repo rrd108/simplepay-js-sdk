@@ -1,0 +1,37 @@
+{
+  "name": "simplepay-js-sdk",
+  "version": "0.1.0",
+  "description": "A Node.js utility for SimplePay payment integration",
+  "type": "module",
+  "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./types": "./dist/types.js"
+  },
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build",
+    "test": "vitest"
+  },
+  "keywords": [
+    "simplepay",
+    "payment",
+    "nodejs",
+    "typescript"
+  ],
+  "author": "Radharadhya Dasa",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^2.1.6"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
