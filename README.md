@@ -1,4 +1,4 @@
-# SimplePay Node.js Utilit
+# Simplepay JS SDK
 
 A lightweight utility for integrating SimplePay payments in Node.js applications.
 
@@ -27,7 +27,7 @@ Set the following environment variables in your `.env` file:
 
 ## Usage
 
-### Start Payment
+### Start Payment Endpoint
 
 ```typescript
 import { startPayment } from 'simplepay-js-sdk'
@@ -55,7 +55,7 @@ try {
 
 `response.paymentUrl` will contain the Simplepay payment URL, which you can redirect the customer to.
 
-### Get Payment Response
+### Get Payment Response Endpoint
 
 When the customer returns from the Simplepay payment page, you need to get the payment response at your `SIMPLEPAY_REDIRECT_URL`. The url will contain 2 parameters: `r` and `s`.
 
@@ -74,6 +74,16 @@ const response = getPaymentResponse(r, s)
 - `event`: the event type: `success` | `fail` | `timeout` | `cancel`
 - `merchantId`: the merchant id
 - `orderId`: the order id
+
+### IPN Endpoint
+
+Simplepay will send a `POST` request to the IPN url and you should send a response back.
+At this endpoint you should
+
+- check if the signature is valid - use `checkSignature(ipnBody, signatureHeader, SIMPLEPAY_MERCHANT_KEY)`
+- add a `receiveDate` property to the received JSON
+- calculate the new signature - use `generateSignature(responseText, SIMPLEPAY_MERCHANT_KEY)`
+- send the `response` with the new `signature`
 
 ## License
 
