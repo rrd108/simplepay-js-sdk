@@ -25,11 +25,11 @@ const prepareRequestBody = (body: SimplePayRequestBody) =>
 
 const SIMPLEPAY_API_URL = 'https://secure.simplepay.hu/payment/v2'
 const SIMPLEPAY_SANDBOX_URL = 'https://sandbox.simplepay.hu/payment/v2/start'
-const SDK_VERSION = 'SimplePayV2.1_Rrd_0.1.0'
+const SDK_VERSION = 'SimplePayV2.1_Rrd_0.2.0'
+const MERCHANT_KEY = process.env.SIMPLEPAY_MERCHANT_KEY_HUF
+const MERCHANT_ID = process.env.SIMPLEPAY_MERCHANT_ID_HUF
 
 const startPayment = async (paymentData: PaymentData) => {
-    const MERCHANT_KEY = process.env.SIMPLEPAY_MERCHANT_KEY
-    const MERCHANT_ID = process.env.SIMPLEPAY_MERCHANT_ID
     const API_URL = process.env.SIMPLEPAY_PRODUCTION === 'true' ? SIMPLEPAY_API_URL : SIMPLEPAY_SANDBOX_URL
     simplepayLogger({ MERCHANT_KEY, MERCHANT_ID, API_URL })
 
@@ -104,7 +104,7 @@ const getPaymentResponse = (r: string, signature: string) => {
     // Note: Replaced atob with Buffer for ESM
     const rDecoded = Buffer.from(r, 'base64').toString('utf-8')
 
-    if (!checkSignature(rDecoded, signature, process.env.SIMPLEPAY_MERCHANT_KEY || '')) {
+    if (!checkSignature(rDecoded, signature, MERCHANT_KEY || '')) {
         simplepayLogger({ rDecoded, signature })
         throw new Error('Invalid response signature')
     }

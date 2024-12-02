@@ -20,12 +20,14 @@ pnpm add simplepay-js-sdk
 Set the following environment variables in your `.env` file:
 
 - `SIMPLEPAY_LOGGER` If it set to `true`, it will log varibles - useful only for debugging.
-- `SIMPLEPAY_MERCHANT_KEY` Your Simplepay secret merchant key.
-- `SIMPLEPAY_MERCHANT_ID` Your Simplepay merchant id.
+- `SIMPLEPAY_MERCHANT_KEY_HUF` Your Simplepay secret merchant key.
+- `SIMPLEPAY_MERCHANT_ID_HUF` Your Simplepay merchant id.
 - `SIMPLEPAY_PRODUCTION` If it set to `true`, it will use production environment, otherwise it will use sandbox environment.
 - `SIMPLEPAY_REDIRECT_URL` The URL of your site, where the customer will be redirected after the payment.
 
 ## Usage
+
+You should create 3 endpoints, to start the payment, get the payment response and handle the IPN.
 
 ### Start Payment Endpoint
 
@@ -80,9 +82,9 @@ const response = getPaymentResponse(r, s)
 Simplepay will send a `POST` request to the IPN url and you should send a response back.
 At this endpoint you should
 
-- check if the signature is valid - use `checkSignature(ipnBody, signatureHeader, SIMPLEPAY_MERCHANT_KEY)`
+- check if the signature is valid - use `checkSignature(ipnBody, signatureHeader, SIMPLEPAY_MERCHANT_KEY_HUF)`
 - add a `receiveDate` property to the received JSON
-- calculate the new signature - use `generateSignature(responseText, SIMPLEPAY_MERCHANT_KEY)`
+- calculate the new signature - use `generateSignature(responseText, SIMPLEPAY_MERCHANT_KEY_HUF)`
 - send the `response` with the new `signature`
 
 ## License
