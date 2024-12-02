@@ -1,6 +1,6 @@
 # Simplepay JS SDK
 
-A lightweight utility for integrating SimplePay payments in Node.js applications.
+A lightweight utility for integrating Hungary's SimplePay payments in Node.js applications.
 
 ## Installation
 
