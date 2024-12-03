@@ -46,13 +46,6 @@ if [ $PREV_STEP -eq 1 ];then
     git add src/index.ts
     git commit -m "chore: update SDK_VERSION to $new_version"
 
-    # Bump the version number using patch/minor keyword
-    yarn version --"$1" --no-git-tag-version
-
-    # Collect release notes from commits since the last release
-    last_release=$(git describe --tags --abbrev=0)
-    release_notes=$(git log "${last_release}..HEAD" --pretty="%s" | awk -v prefix="* " '/^(feat|fix|docs|test|chore|refactor|style)/{print prefix $0}')
-
     echo "👉 Publishing the new version to npmjs.com"
     yarn publish --new-version "$new_version"
     
@@ -60,6 +53,9 @@ if [ $PREV_STEP -eq 1 ];then
     git push origin main
     git push simplepay-js-sdk "v$new_version"
 
+    # Collect release notes from commits since the last release
+    last_release=$(git describe --tags --abbrev=0)
+    release_notes=$(git log "${last_release}..HEAD" --pretty="%s" | awk -v prefix="* " '/^(feat|fix|docs|test|chore|refactor|style)/{print prefix $0}')
     echo "👉 Creating a new release on GitHub"
     gh release create "v$new_version" \
       --notes "$release_notes" \
