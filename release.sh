@@ -51,7 +51,7 @@ if [ $PREV_STEP -eq 1 ];then
     
     echo "👉 Pushing new version to git: $new_version"
     git push origin main
-    git push simplepay-js-sdk "v$new_version"
+    git push origin "v$new_version"
 
     # Collect release notes from commits since the last release
     last_release=$(git describe --tags --abbrev=0)
