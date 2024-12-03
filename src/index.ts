@@ -27,7 +27,7 @@ const prepareRequestBody = (body: SimplePayRequestBody) =>
 const getSimplePayConfig = () => {
     const SIMPLEPAY_API_URL = 'https://secure.simplepay.hu/payment/v2'
     const SIMPLEPAY_SANDBOX_URL = 'https://sandbox.simplepay.hu/payment/v2/start'
-    const SDK_VERSION = 'SimplePayV2.1_Rrd_0.3.3'
+    const SDK_VERSION = 'SimplePayV2.1_Rrd_0.3.4'
     const MERCHANT_KEY = process.env.SIMPLEPAY_MERCHANT_KEY_HUF
     const MERCHANT_ID = process.env.SIMPLEPAY_MERCHANT_ID_HUF
     const API_URL = process.env.SIMPLEPAY_PRODUCTION === 'true' ? SIMPLEPAY_API_URL : SIMPLEPAY_SANDBOX_URL
