@@ -43,7 +43,7 @@ if [ $PREV_STEP -eq 1 ];then
 
     echo "👉 Update version in SDK_VERSION in src/index.ts and package.json"
     sed -i "s/SimplePayV2.1_Rrd_[0-9]\+\.[0-9]\+\.[0-9]\+/SimplePayV2.1_Rrd_$new_version/" src/index.ts
-    yarn version --new-version "$new_version" --no-git-tag-version
+    yarn version --new-version "$new_version" --no-git-tag-version --force
     git add src/index.ts package.json
     git commit -m "chore: bump version to $new_version"
 
