@@ -41,13 +41,14 @@ if [ $PREV_STEP -eq 1 ];then
     new_version=$(npm version "$1" --no-git-tag-version)
     new_version=${new_version#v}
 
-    echo "👉 Update SDK_VERSION in src/index.ts"
+    echo "👉 Update version in SDK_VERSION in src/index.ts and package.json"
     sed -i "s/SimplePayV2.1_Rrd_[0-9]\+\.[0-9]\+\.[0-9]\+/SimplePayV2.1_Rrd_$new_version/" src/index.ts
-    git add src/index.ts
-    git commit -m "chore: update SDK_VERSION to $new_version"
+    yarn version --new-version "$new_version" --no-git-tag-version
+    git add src/index.ts package.json
+    git commit -m "chore: bump version to $new_version"
 
     echo "👉 Publishing the new version to npmjs.com"
-    yarn publish --new-version "$new_version"
+    yarn publish --skip-version-check
     
     echo "👉 Pushing new version to git: $new_version"
     git push origin main
