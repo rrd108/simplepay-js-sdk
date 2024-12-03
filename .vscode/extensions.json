@@ -1,0 +1,11 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "usernamehw.errorlens",
+    "yoavbls.pretty-ts-errors",
+    "gruntfuggly.todo-tree",
+    "aaron-bond.better-comments",
+    "VisualStudioExptTeam.vscodeintellicode",
+    "vitest.explorer"
+  ]
+}

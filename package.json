@@ -20,7 +20,9 @@
   "scripts": {
     "build": "tsc",
     "prepare": "npm run build",
-    "test": "vitest"
+    "test": "vitest --run",
+    "test:watch": "vitest",
+    "release": "bash ./release.sh"
   },
   "keywords": [
     "simplepay",
