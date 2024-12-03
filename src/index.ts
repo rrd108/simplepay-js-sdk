@@ -1,5 +1,5 @@
 import crypto from 'crypto'
-import { PaymentData, SimplePayRequestBody, SimplePayResponse, SimplepayResult } from './types'
+import { PaymentData, SimplePayRequestBody, SimplePayResponse, SimplepayResult, Currency, CURRENCIES } from './types'
 
 // Existing interfaces remain the same
 
@@ -24,12 +24,16 @@ const prepareRequestBody = (body: SimplePayRequestBody) =>
     JSON.stringify(body).replace(/\//g, '\\/')
 
 
-const getSimplePayConfig = () => {
+const getSimplePayConfig = (currency: Currency) => {
+    if (!CURRENCIES.includes(currency)) {
+        throw new Error(`Unsupported currency: ${currency}`)
+    }
+
     const SIMPLEPAY_API_URL = 'https://secure.simplepay.hu/payment/v2'
     const SIMPLEPAY_SANDBOX_URL = 'https://sandbox.simplepay.hu/payment/v2/start'
     const SDK_VERSION = 'SimplePayV2.1_Rrd_0.3.6'
-    const MERCHANT_KEY = process.env.SIMPLEPAY_MERCHANT_KEY_HUF
-    const MERCHANT_ID = process.env.SIMPLEPAY_MERCHANT_ID_HUF
+    const MERCHANT_KEY = process.env[`SIMPLEPAY_MERCHANT_KEY_${currency}`]
+    const MERCHANT_ID = process.env[`SIMPLEPAY_MERCHANT_ID_${currency}`]
     const API_URL = process.env.SIMPLEPAY_PRODUCTION === 'true' ? SIMPLEPAY_API_URL : SIMPLEPAY_SANDBOX_URL
 
     return {
@@ -41,7 +45,8 @@ const getSimplePayConfig = () => {
 }
 
 const startPayment = async (paymentData: PaymentData) => {
-    const { MERCHANT_KEY, MERCHANT_ID, API_URL, SDK_VERSION } = getSimplePayConfig()
+    const currency = paymentData.currency || 'HUF'
+    const { MERCHANT_KEY, MERCHANT_ID, API_URL, SDK_VERSION } = getSimplePayConfig(currency)
     simplepayLogger({ MERCHANT_KEY, MERCHANT_ID, API_URL })
 
     if (!MERCHANT_KEY || !MERCHANT_ID) {
@@ -52,7 +57,7 @@ const startPayment = async (paymentData: PaymentData) => {
         salt: crypto.randomBytes(16).toString('hex'),
         merchant: MERCHANT_ID,
         orderRef: paymentData.orderRef,
-        currency: paymentData.currency || 'HUF',
+        currency,
         customerEmail: paymentData.customerEmail,
         language: paymentData.language || 'HU',
         sdkVersion: SDK_VERSION,
@@ -111,10 +116,24 @@ const startPayment = async (paymentData: PaymentData) => {
     }
 }
 
+const getCurrencyFromMerchantId = (merchantId: string) => {
+    const currency = Object.entries(process.env)
+        .find(([key, value]) =>
+            key.startsWith('SIMPLEPAY_MERCHANT_ID_') && value === merchantId
+        )?.[0]?.replace('SIMPLEPAY_MERCHANT_ID_', '') as Currency
+    if (!currency) {
+        throw new Error(`Merchant id not found in the environment: ${merchantId}`)
+    }
+    return currency
+}
+
 const getPaymentResponse = (r: string, signature: string) => {
-    const { MERCHANT_KEY } = getSimplePayConfig()
-    // Note: Replaced atob with Buffer for ESM
+    signature = decodeURIComponent(signature)
+    signature = Buffer.from(signature, 'base64').toString('utf-8')
     const rDecoded = Buffer.from(r, 'base64').toString('utf-8')
+    const rDecodedJSON = JSON.parse(rDecoded)
+    const currency = getCurrencyFromMerchantId(rDecodedJSON.m)
+    const { MERCHANT_KEY } = getSimplePayConfig(currency as Currency)
 
     if (!checkSignature(rDecoded, signature, MERCHANT_KEY || '')) {
         simplepayLogger({ rDecoded, signature })
@@ -133,4 +152,11 @@ const getPaymentResponse = (r: string, signature: string) => {
     return response
 }
 
-export { startPayment, generateSignature, checkSignature, getPaymentResponse }
+export {
+    startPayment,
+    getPaymentResponse,
+    getSimplePayConfig,
+    generateSignature,
+    checkSignature,
+    getCurrencyFromMerchantId
+}

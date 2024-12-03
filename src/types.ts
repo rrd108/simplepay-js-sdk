@@ -1,10 +1,13 @@
 type PaymentMethod = 'CARD' | 'WIRE'
 
+const CURRENCIES = ['HUF', 'EUR', 'USD'] as const
+type Currency = typeof CURRENCIES[number]
+
 interface PaymentData {
     orderRef: string
     total: number | string
     customerEmail: string
-    currency?: string
+    currency?: Currency
     language?: string
     method?: PaymentMethod
     invoice?: {
@@ -33,7 +36,7 @@ interface SimplePayResponse {
     salt: string
     merchant: string
     orderRef: string
-    currency: string
+    currency: Currency
     transactionId: string
     timeout: string
     total: string
@@ -49,4 +52,4 @@ interface SimplepayResult {
     o: string   // order id
 }
 
-export { PaymentData, SimplePayRequestBody, SimplePayResponse, SimplepayResult }
+export { PaymentData, SimplePayRequestBody, SimplePayResponse, SimplepayResult, CURRENCIES, Currency, PaymentMethod }
