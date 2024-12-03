@@ -40,7 +40,10 @@ try {
   const response = await startPayment({
     orderRef: 'order-12',
     total: 1212,
+    currency: 'HUF', // optional, defaults to HUF
     customerEmail: 'rrd@webmania.cc',
+    language: 'HU', // optional, defaults to HU
+    method: 'CARD', // optional, CARD | WIRE, defaults to CARD
     invoice: {
       name: 'Radharadhya Dasa',
       country: 'HU',

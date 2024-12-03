@@ -23,14 +23,25 @@ const checkSignature = (responseText: string, signature: string, merchantKey: st
 const prepareRequestBody = (body: SimplePayRequestBody) =>
     JSON.stringify(body).replace(/\//g, '\\/')
 
-const SIMPLEPAY_API_URL = 'https://secure.simplepay.hu/payment/v2'
-const SIMPLEPAY_SANDBOX_URL = 'https://sandbox.simplepay.hu/payment/v2/start'
-const SDK_VERSION = 'SimplePayV2.1_Rrd_0.2.0'
-const MERCHANT_KEY = process.env.SIMPLEPAY_MERCHANT_KEY_HUF
-const MERCHANT_ID = process.env.SIMPLEPAY_MERCHANT_ID_HUF
+
+const getSimplePayConfig = () => {
+    const SIMPLEPAY_API_URL = 'https://secure.simplepay.hu/payment/v2'
+    const SIMPLEPAY_SANDBOX_URL = 'https://sandbox.simplepay.hu/payment/v2/start'
+    const SDK_VERSION = 'SimplePayV2.1_Rrd_0.2.0'
+    const MERCHANT_KEY = process.env.SIMPLEPAY_MERCHANT_KEY_HUF
+    const MERCHANT_ID = process.env.SIMPLEPAY_MERCHANT_ID_HUF
+    const API_URL = process.env.SIMPLEPAY_PRODUCTION === 'true' ? SIMPLEPAY_API_URL : SIMPLEPAY_SANDBOX_URL
+
+    return {
+        MERCHANT_KEY,
+        MERCHANT_ID,
+        API_URL,
+        SDK_VERSION
+    }
+}
 
 const startPayment = async (paymentData: PaymentData) => {
-    const API_URL = process.env.SIMPLEPAY_PRODUCTION === 'true' ? SIMPLEPAY_API_URL : SIMPLEPAY_SANDBOX_URL
+    const { MERCHANT_KEY, MERCHANT_ID, API_URL, SDK_VERSION } = getSimplePayConfig()
     simplepayLogger({ MERCHANT_KEY, MERCHANT_ID, API_URL })
 
     if (!MERCHANT_KEY || !MERCHANT_ID) {
@@ -45,7 +56,7 @@ const startPayment = async (paymentData: PaymentData) => {
         customerEmail: paymentData.customerEmail,
         language: paymentData.language || 'HU',
         sdkVersion: SDK_VERSION,
-        methods: ['CARD'],
+        methods: [paymentData.method || 'CARD'],
         total: String(paymentData.total),
         timeout: new Date(Date.now() + 30 * 60 * 1000)
             .toISOString()
@@ -101,6 +112,7 @@ const startPayment = async (paymentData: PaymentData) => {
 }
 
 const getPaymentResponse = (r: string, signature: string) => {
+    const { MERCHANT_KEY } = getSimplePayConfig()
     // Note: Replaced atob with Buffer for ESM
     const rDecoded = Buffer.from(r, 'base64').toString('utf-8')
 

@@ -1,9 +1,12 @@
+type PaymentMethod = 'CARD' | 'WIRE'
+
 interface PaymentData {
     orderRef: string
     total: number | string
     customerEmail: string
     currency?: string
     language?: string
+    method?: PaymentMethod
     invoice?: {
         name: string
         country: string
@@ -21,7 +24,7 @@ interface SimplePayRequestBody extends Omit<PaymentData, 'total'> {
     salt: string
     merchant: string
     sdkVersion: string
-    methods: ['CARD']
+    methods: PaymentMethod[]
     timeout: string
     url: string
 }

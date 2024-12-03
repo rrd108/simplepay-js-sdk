@@ -1,5 +1,17 @@
-import { describe, it, expect } from 'vitest'
-import { checkSignature, generateSignature } from './index'
+import { describe, it, expect, vi } from 'vitest'
+import { checkSignature, generateSignature, getPaymentResponse, startPayment } from './index'
+import { PaymentData } from './types'
+
+const setEnv = () => {
+    process.env.SIMPLEPAY_MERCHANT_KEY_HUF = 'testKey'
+    process.env.SIMPLEPAY_MERCHANT_ID_HUF = 'testId'
+}
+
+const paymentData = {
+    orderRef: 'TEST123',
+    customerEmail: 'test@example.com',
+    total: 1212
+}
 
 describe('generateSignature', () => {
     it('should generate correct signature for sample payload from documentation', () => {
@@ -48,4 +60,92 @@ describe('checkSignature', () => {
         const result = checkSignature(JSON.stringify(response).replace(/\//g, '\\/'), expectedSignature, merchantKey)
         expect(result).toBeTruthy()
     })
+
+    it('should return false for invalid signature', () => {
+        const merchantKey = 'testKey'
+        const response = { test: 'data' }
+        const invalidSignature = 'invalid-signature'
+
+        const result = checkSignature(
+            JSON.stringify(response),
+            invalidSignature,
+            merchantKey
+        )
+        expect(result).toBeFalsy()
+    })
 })
+
+describe('getPaymentResponse', () => {
+    it('should correctly decode and parse valid response', () => {
+        // Create a base64 encoded response similar to what SimplePay returns
+        const mockResponse = {
+            r: 'SUCCESS',
+            t: '123456789',
+            e: 'PAYMENT',
+            m: 'MERCHANT123',
+            o: 'ORDER123'
+        }
+        const encodedResponse = Buffer.from(JSON.stringify(mockResponse)).toString('base64')
+        const validSignature = generateSignature(JSON.stringify(mockResponse), process.env.SIMPLEPAY_MERCHANT_KEY_HUF || '')
+
+        const result = getPaymentResponse(encodedResponse, validSignature)
+
+        expect(result).toEqual({
+            responseCode: 'SUCCESS',
+            transactionId: '123456789',
+            event: 'PAYMENT',
+            merchantId: 'MERCHANT123',
+            orderId: 'ORDER123'
+        })
+    })
+
+    it('should throw error for invalid signature', () => {
+        const mockResponse = { test: 'data' }
+        const encodedResponse = Buffer.from(JSON.stringify(mockResponse)).toString('base64')
+
+        expect(() =>
+            getPaymentResponse(encodedResponse, 'invalid-signature')
+        ).toThrow('Invalid response signature')
+    })
+})
+
+describe('startPayment', () => {
+    it('should throw error when merchant configuration is missing', async () => {
+        await expect(startPayment(paymentData)).rejects.toThrow('Missing SimplePay configuration')
+    })
+
+    it('should handle API errors correctly', async () => {
+        setEnv()
+
+        global.fetch = vi.fn().mockResolvedValue({
+            ok: true,
+            headers: {
+                get: vi.fn().mockReturnValue('mockSignature')
+            },
+            text: vi.fn().mockResolvedValue(JSON.stringify({
+                transactionId: '123456',
+                total: '1212',
+                merchant: 'testId'
+            }))
+        }) as unknown as typeof fetch
+        await expect(startPayment(paymentData)).rejects.toThrow('Invalid response signature')
+    })
+
+    it('should successfully start CARD, HUF, HU payment when API returns valid response', async () => {
+        setEnv()
+        global.fetch = vi.fn().mockResolvedValue({
+            ok: true,
+            headers: {
+                get: vi.fn().mockReturnValue('bxSwUc0qn0oABSRcq9uawF6zncFBhRk/AbO4HznYR9Pt5SjocyxAD+9Q4bE44h0J')
+            },
+            text: vi.fn().mockResolvedValue(JSON.stringify({
+                transactionId: '123456',
+                total: '1212',
+                merchant: 'testId'
+            }))
+        }) as unknown as typeof fetch
+
+        await expect(startPayment(paymentData)).resolves.toBeDefined()
+    })
+})
+
