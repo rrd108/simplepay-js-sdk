@@ -54,7 +54,7 @@ if [ $PREV_STEP -eq 1 ];then
     release_notes=$(git log "${last_release}..HEAD" --pretty="%s" | awk -v prefix="* " '/^(feat|fix|docs|test|chore|refactor|style)/{print prefix $0}')
 
     echo "👉 Publishing the new version to npmjs.com"
-    yarn publish
+    yarn publish --new-version "$new_version"
     
     echo "👉 Pushing new version to git: $new_version"
     git push origin main
