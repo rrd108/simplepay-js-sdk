@@ -38,20 +38,20 @@ if [ $PREV_STEP -eq 1 ];then
 
   # Check if the repository is clean
   if [ -z "$git_status" ]; then
+    new_version=$(npm version "$1" --no-git-tag-version)
+    new_version=${new_version#v}
+
+    echo "👉 Update SDK_VERSION in src/index.ts"
+    sed -i "s/SimplePayV2.1_Rrd_[0-9]\+\.[0-9]\+\.[0-9]\+/SimplePayV2.1_Rrd_$new_version/" src/index.ts
+    git add src/index.ts
+    git commit -m "chore: update SDK_VERSION to $new_version"
+
+    # Bump the version number using patch/minor keyword
+    yarn version --"$1" --no-git-tag-version
+
     # Collect release notes from commits since the last release
     last_release=$(git describe --tags --abbrev=0)
     release_notes=$(git log "${last_release}..HEAD" --pretty="%s" | awk -v prefix="* " '/^(feat|fix|docs|test|chore|refactor|style)/{print prefix $0}')
-
-     # Bump the version number using patch/minor keyword
-    yarn version --"$1"
-
-    # Capture the new version number
-    new_version=$(node -p "require('./package.json').version")
-
-    echo "👉 Update SDK_VERSION in src/index.ts"
-    sed -i "s/SDK_VERSION = .*/SDK_VERSION = '$new_version'/" src/index.ts
-    git add src/index.ts
-    git commit -m "chore: update SDK_VERSION to $new_version"
 
     echo "👉 Publishing the new version to npmjs.com"
     yarn publish
@@ -61,7 +61,12 @@ if [ $PREV_STEP -eq 1 ];then
     git push simplepay-js-sdk "v$new_version"
 
     echo "👉 Creating a new release on GitHub"
-    gh release create "v$new_version" --notes "$release_notes"
+    gh release create "v$new_version" \
+      --notes "$release_notes" \
+      --target main \
+      --generate-notes \
+      --title "v$new_version" \
+      --latest
   else
     echo -e $'\n' "${RED} \u2a2f Repository is not clean. ${NC} Please commit or stash your changes before running this script." $'\n'
     exit 1
