@@ -4,6 +4,8 @@ A lightweight utility for integrating Hungary's SimplePay payments in Node.js ap
 
 ![SimplePay Logo](simplepay_logo.jpg)
 
+Please read the [SimplePay documentation](https://simplepay.hu/fejlesztoknek) for more information.
+
 ## Installation
 
 ```bash
@@ -22,8 +24,8 @@ pnpm add simplepay-js-sdk
 Set the following environment variables in your `.env` file:
 
 - `SIMPLEPAY_LOGGER` If it set to `true`, it will log varibles - useful only for debugging.
-- `SIMPLEPAY_MERCHANT_KEY_HUF` Your Simplepay secret merchant key.
-- `SIMPLEPAY_MERCHANT_ID_HUF` Your Simplepay merchant id.
+- `SIMPLEPAY_MERCHANT_KEY_HUF` Your Simplepay secret merchant key. Set `SIMPLEPAY_MERCHANT_KEY_EUR` and `SIMPLEPAY_MERCHANT_KEY_USD` for accepting EUR and USD payments.
+- `SIMPLEPAY_MERCHANT_ID_HUF` Your Simplepay merchant id. Set `SIMPLEPAY_MERCHANT_ID_EUR` and `SIMPLEPAY_MERCHANT_ID_USD` for accepting EUR and USD payments.
 - `SIMPLEPAY_PRODUCTION` If it set to `true`, it will use production environment, otherwise it will use sandbox environment.
 - `SIMPLEPAY_REDIRECT_URL` The URL of your site, where the customer will be redirected after the payment.
 
@@ -40,7 +42,7 @@ try {
   const response = await startPayment({
     orderRef: 'order-12',
     total: 1212,
-    currency: 'HUF', // optional, defaults to HUF
+    currency: 'HUF', // optional, HUF | EUR | USD, defaults to HUF
     customerEmail: 'rrd@webmania.cc',
     language: 'HU', // optional, defaults to HU
     method: 'CARD', // optional, CARD | WIRE, defaults to CARD
