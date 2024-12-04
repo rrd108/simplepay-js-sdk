@@ -5,8 +5,6 @@ import { Currency } from './types'
 const setEnv = () => {
     process.env.SIMPLEPAY_MERCHANT_ID_HUF = 'testId'
     process.env.SIMPLEPAY_MERCHANT_KEY_HUF = 'testKey'
-    //    process.env.SIMPLEPAY_MERCHANT_ID_EUR = 'P085402'
-    //  process.env.SIMPLEPAY_MERCHANT_KEY_EUR = '4?K4&!ZG3|v~6_)p0634'
     process.env.SIMPLEPAY_MERCHANT_ID_EUR = 'merchantEuroId'
     process.env.SIMPLEPAY_MERCHANT_KEY_EUR = 'secretEuroKey'
 }
