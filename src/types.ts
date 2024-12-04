@@ -3,12 +3,32 @@ type PaymentMethod = 'CARD' | 'WIRE'
 const CURRENCIES = ['HUF', 'EUR', 'USD'] as const
 type Currency = typeof CURRENCIES[number]
 
+const LANGUAGES = [
+    'AR', // Arabic
+    'BG', // Bulgarian
+    'CS', // Czech
+    'DE', // German
+    'EN', // English
+    'ES', // Spanish
+    'FR', // French
+    'IT', // Italian
+    'HR', // Croatian
+    'HU', // Hungarian
+    'PL', // Polish
+    'RO', // Romanian
+    'RU', // Russian
+    'SK', // Slovak
+    'TR', // Turkish
+    'ZH', // Chinese
+] as const
+type Language = typeof LANGUAGES[number]
+
 interface PaymentData {
     orderRef: string
     total: number | string
     customerEmail: string
     currency?: Currency
-    language?: string
+    language?: Language
     method?: PaymentMethod
     invoice?: {
         name: string
@@ -52,4 +72,4 @@ interface SimplepayResult {
     o: string   // order id
 }
 
-export { PaymentData, SimplePayRequestBody, SimplePayResponse, SimplepayResult, CURRENCIES, Currency, PaymentMethod }
+export { PaymentData, SimplePayRequestBody, SimplePayResponse, SimplepayResult, CURRENCIES, Currency, PaymentMethod, LANGUAGES, Language }

@@ -44,7 +44,7 @@ try {
     total: 1212,
     currency: 'HUF', // optional, HUF | EUR | USD, defaults to HUF
     customerEmail: 'rrd@webmania.cc',
-    language: 'HU', // optional, defaults to HU
+    language: 'HU', // optional, AR | BG | CS | DE | EN | ES | FR | IT | HR | HU | PL | RO | RU | SK | TR | ZH, defaults to HU
     method: 'CARD', // optional, CARD | WIRE, defaults to CARD
     invoice: {
       name: 'Radharadhya Dasa',
