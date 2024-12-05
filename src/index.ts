@@ -146,7 +146,7 @@ const getPaymentResponse = (r: string, signature: string) => {
         transactionId: responseJson.t,
         event: responseJson.e,
         merchantId: responseJson.m,
-        orderId: responseJson.o,
+        orderRef: responseJson.o,
     }
 
     return response

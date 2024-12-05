@@ -82,7 +82,7 @@ const response = getPaymentResponse(r, s)
 - `transactionId`: the transaction id
 - `event`: the event type: `success` | `fail` | `timeout` | `cancel`
 - `merchantId`: the merchant id
-- `orderId`: the order id
+- `orderRef`: the order id
 
 ### IPN Endpoint
 

@@ -123,7 +123,7 @@ describe('SimplePay SDK Tests', () => {
                 transactionId: 504233881,
                 event: 'SUCCESS',
                 merchantId: 'merchantEuroId',
-                orderId: 'c-1-eur'
+                orderRef: 'c-1-eur'
             })
         })
 
