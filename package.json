@@ -7,19 +7,21 @@
     "url": "https://github.com/rrd108/simplepay-js-sdk"
   },
   "type": "module",
-  "main": "dist/index.js",
+  "main": "./dist/index.js",
   "exports": {
-    ".": "./dist/index.js",
-    "./types": "./dist/types.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   },
-  "types": "dist/index.d.ts",
+  "types": "./dist/index.d.ts",
   "files": [
     "dist",
     "src"
   ],
   "scripts": {
-    "build": "tsc",
-    "prepare": "npm run build",
+   "build": "vite build",
+    "types": "tsc --emitDeclarationOnly",
     "test": "vitest --run",
     "test:watch": "vitest",
     "release": "bash ./release.sh",
@@ -35,10 +37,12 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "typescript": "^5.0.0",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.3",
+    "vite-plugin-dts": "^4.3.0",
     "vitest": "^2.1.6"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   }
 }
