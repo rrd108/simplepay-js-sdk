@@ -22,7 +22,8 @@ export default defineConfig({
                     format: 'es',
                     entryFileNames: '[name].js',
                 }
-            ]
+            ],
+           external: ['crypto']
         }
-    }
+    },
 })

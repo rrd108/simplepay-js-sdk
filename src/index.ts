@@ -128,7 +128,6 @@ const getCurrencyFromMerchantId = (merchantId: string) => {
 
 const getPaymentResponse = (r: string, signature: string) => {
     signature = decodeURIComponent(signature)
-    signature = Buffer.from(signature, 'base64').toString('utf-8')
     const rDecoded = Buffer.from(r, 'base64').toString('utf-8')
     const rDecodedJSON = JSON.parse(rDecoded)
     const currency = getCurrencyFromMerchantId(rDecodedJSON.m)

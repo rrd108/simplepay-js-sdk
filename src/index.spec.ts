@@ -112,6 +112,14 @@ describe('SimplePay SDK Tests', () => {
     })
 
     describe('getPaymentResponse', () => {
+        it.only('TODO: test for invalid response', () => {
+            process.env.SIMPLEPAY_MERCHANT_ID_HUF = 'P085602'
+            process.env.SIMPLEPAY_MERCHANT_KEY_HUF = 'QnJvDEEj51jdDEa1P125258p8g5gU383'
+            const r = 'eyJyIjowLCJ0Ijo1MDQyNDU5MDIsImUiOiJTVUNDRVNTIiwibSI6IlAwODU2MDIiLCJvIjoiMTczMzQ5MzQxMjA1NyJ9'
+            const s = 'apIUA%2B8cislIlgYUB7lSpoasi%2BCIRg1SMS5zVbEytnEnxcvdx%2BWDXkAznnseADiI'
+            const result = getPaymentResponse(r, s)
+        })
+
         it('should correctly decode and parse valid response', () => {
             setEnv()
             const r = 'eyJyIjowLCJ0Ijo1MDQyMzM4ODEsImUiOiJTVUNDRVNTIiwibSI6Im1lcmNoYW50RXVyb0lkIiwibyI6ImMtMS1ldXIifQ=='

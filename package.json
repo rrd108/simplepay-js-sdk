@@ -11,7 +11,8 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "node": "./dist/index.js"
     }
   },
   "types": "./dist/index.d.ts",
@@ -37,12 +38,13 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "typescript": "^5.7.2",
+    "typescript": "~5.4.2",
     "vite": "^6.0.3",
     "vite-plugin-dts": "^4.3.0",
     "vitest": "^2.1.6"
   },
   "engines": {
     "node": ">=20.0.0"
-  }
+  },
+  "browser": false
 }
