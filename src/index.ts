@@ -111,7 +111,6 @@ const startPayment = async (paymentData: PaymentData) => {
         return responseJSON
 
     } catch (error) {
-        console.error('SimplePay payment start error:', error)
         throw error
     }
 }
