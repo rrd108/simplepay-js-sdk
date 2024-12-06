@@ -1,6 +1,6 @@
 {
   "name": "simplepay-js-sdk",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "A Node.js utility for SimplePay payment integration",
   "repository": {
     "type": "git",
@@ -20,7 +20,7 @@
     "src"
   ],
   "scripts": {
-   "build": "vite build",
+    "build": "vite build",
     "types": "tsc --emitDeclarationOnly",
     "test": "vitest --run",
     "test:watch": "vitest",
