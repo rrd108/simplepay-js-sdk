@@ -26,7 +26,7 @@ const generateSignature = (body, merchantKey) => {
 
 // If the url is escpaed or not escaped we get the same signature
 const merchantKey = 'secretEuroKey'
-const body = JSON.stringify({ "r": 0, "t": 504233881, "e": "SUCCESS", "m": "merchantEuroId", "o": "c-1-eur" })
+const body = JSON.stringify({r: 0, t: 504233881, e: 'SUCCESS', m: 'merchantEuroId', o: 'c-1-eur' })
 let bodyString = body.replace(/\//g, '\\/')
 console.log(bodyString)
 

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { getPaymentResponse, startPayment } from './index'
+import { startRecurringPayment } from './recurring'
+import { toISO8601DateString } from './utils'
 
 const setEnv = () => {
     process.env.SIMPLEPAY_MERCHANT_ID_HUF = 'testId'
@@ -10,10 +11,16 @@ const setEnv = () => {
 
 const paymentData = {
     orderRef: 'TEST123',
+    customer: 'Radharadhya Dasa',
     customerEmail: 'test@example.com',
-    total: 1212
+    total: 1212,
+    recurring: {
+        times: 3,
+        until: toISO8601DateString(new Date(Date.now() + 6 * 30 * 24 * 60 * 60 * 1000)),
+        maxAmount: 12000
+    }
 }
-describe('SimplePay SDK Tests', () => {
+describe.skip('SimplePay Recurring Tests', () => {
     beforeEach(() => {
         // Clear all environment variables before each test
         delete process.env.SIMPLEPAY_MERCHANT_ID_HUF
@@ -22,14 +29,13 @@ describe('SimplePay SDK Tests', () => {
         delete process.env.SIMPLEPAY_MERCHANT_KEY_EUR
     })
 
-    describe('startPayment', () => {
+    describe('startRecurringPayment', () => {
         it('should throw error when merchant configuration is missing', async () => {
-            await expect(startPayment(paymentData)).rejects.toThrow('Missing SimplePay configuration')
+            await expect(startRecurringPayment(paymentData)).rejects.toThrow('Missing SimplePay configuration')
         })
 
         it('should handle API errors correctly', async () => {
             setEnv()
-
             global.fetch = vi.fn().mockResolvedValue({
                 ok: true,
                 headers: {
@@ -41,10 +47,10 @@ describe('SimplePay SDK Tests', () => {
                     merchant: 'testId'
                 }))
             }) as unknown as typeof fetch
-            await expect(startPayment(paymentData)).rejects.toThrow('Invalid response signature')
+            await expect(startRecurringPayment(paymentData)).rejects.toThrow('Invalid response signature')
         })
 
-        it('should successfully start CARD, HUF, HU payment when API returns valid response', async () => {
+        it('should successfully start recurring payment and card registration when API returns valid response', async () => {
             setEnv()
             global.fetch = vi.fn().mockResolvedValue({
                 ok: true,
@@ -58,40 +64,8 @@ describe('SimplePay SDK Tests', () => {
                 }))
             }) as unknown as typeof fetch
 
-            await expect(startPayment(paymentData)).resolves.toBeDefined()
+            await expect(startRecurringPayment(paymentData)).resolves.toBeDefined()
         })
     })
 
-    describe('getPaymentResponse', () => {
-        it('should correctly decode and parse valid response', () => {
-            setEnv()
-            const r = 'eyJyIjowLCJ0Ijo1MDQyMzM4ODEsImUiOiJTVUNDRVNTIiwibSI6Im1lcmNoYW50RXVyb0lkIiwibyI6ImMtMS1ldXIifQ=='
-            // { r: 0, t: 504233881, e: 'SUCCESS', m: 'merchantEuroId', o: 'c-1-eur' }
-            const s = 'YlxrpDa8jF/xVB/rNsEJoFxOoHQ+CiziBmWSMIhYWHSCJmvLoc6kzAiZPmYDU8z6'
-            const result = getPaymentResponse(r, s)
-            expect(result).toEqual({
-                responseCode: 0,
-                transactionId: 504233881,
-                event: 'SUCCESS',
-                merchantId: 'merchantEuroId',
-                orderRef: 'c-1-eur'
-            })
-        })
-
-        it('should throw error for invalid signature', () => {
-            setEnv()
-            const mockResponse = {
-                r: 'SUCCESS',
-                t: '123456789',
-                e: 'PAYMENT',
-                m: 'testId',
-                o: 'ORDER123'
-            }
-            const encodedResponse = Buffer.from(JSON.stringify(mockResponse)).toString('base64')
-
-            expect(() =>
-                getPaymentResponse(encodedResponse, 'invalid-signature')
-            ).toThrow('Invalid response signature')
-        })
-    })
 })

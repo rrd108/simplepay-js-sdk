@@ -42,6 +42,17 @@ interface PaymentData {
     }
 }
 
+type ISO8601DateString = string
+interface Recurring {
+    times: number,
+    until: ISO8601DateString,
+    maxAmount: number
+}
+interface RecurringPaymentData extends PaymentData {
+    customer: string,
+    recurring: Recurring
+ }
+
 interface SimplePayRequestBody extends Omit<PaymentData, 'total'> {
     total: string
     salt: string
@@ -52,16 +63,26 @@ interface SimplePayRequestBody extends Omit<PaymentData, 'total'> {
     url: string
 }
 
+interface SimplePayRecurringRequestBody extends SimplePayRequestBody {
+    customer: string
+    recurring: Recurring
+    threeDSReqAuthMethod: '02'  // only registered users can use this
+}
+
 interface SimplePayResponse {
     salt: string
     merchant: string
     orderRef: string
     currency: Currency
     transactionId: string
-    timeout: string
+    timeout: ISO8601DateString
     total: string
     paymentUrl: string
     errorCodes?: string[]
+}
+
+interface SimplePayRecurringResponse extends SimplePayResponse {
+    tokens: string[]
 }
 
 interface SimplepayResult {
@@ -72,4 +93,4 @@ interface SimplepayResult {
     o: string   // order id
 }
 
-export { PaymentData, SimplePayRequestBody, SimplePayResponse, SimplepayResult, CURRENCIES, Currency, PaymentMethod, LANGUAGES, Language }
+export { PaymentData, SimplePayRequestBody, SimplePayResponse, SimplepayResult, RecurringPaymentData, CURRENCIES, Currency, PaymentMethod, LANGUAGES, Language, ISO8601DateString, SimplePayRecurringResponse, SimplePayRecurringRequestBody }

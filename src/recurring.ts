@@ -1,8 +1,14 @@
 import crypto from 'crypto'
-import { PaymentData, SimplePayRequestBody, SimplePayResponse, SimplepayResult, Currency, CURRENCIES } from './types'
-import { simplepayLogger, getSimplePayConfig, prepareRequestBody, generateSignature, checkSignature, toISO8601DateString, getCurrencyFromMerchantId } from './utils'
+import { RecurringPaymSimplePayRecurringRequestBody, entData, SimplePayRecurringResponse, SimplePayRecurringRequestBody, RecurringPaymentData } from './types'
+import { getSimplePayConfig, simplepayLogger, prepareRequestBody, generateSignature, checkSignature, toISO8601DateString} from './utils'
+import { getPaymentResponse } from '.'
 
-const startPayment = async (paymentData: PaymentData) => {
+const INTERVAL_IN_MONTHS = 6
+const DEFAULT_UNTIL = new Date(Date.now() + INTERVAL_IN_MONTHS * 30 * 24 * 60 * 60 * 1000)
+const DEFAULT_MAX_AMOUNT = 12000
+const DEFAULT_TIMES = 3
+
+const startRecurringPayment = async (paymentData: RecurringPaymentData) => {
     const currency = paymentData.currency || 'HUF'
     const { MERCHANT_KEY, MERCHANT_ID, API_URL, SDK_VERSION } = getSimplePayConfig(currency)
     simplepayLogger({ MERCHANT_KEY, MERCHANT_ID, API_URL })
@@ -11,15 +17,22 @@ const startPayment = async (paymentData: PaymentData) => {
         throw new Error('Missing SimplePay configuration')
     }
 
-    const requestBody: SimplePayRequestBody = {
+    const requestBody: SimplePayRecurringRequestBody = {
         salt: crypto.randomBytes(16).toString('hex'),
         merchant: MERCHANT_ID,
         orderRef: paymentData.orderRef,
         currency,
+        customer: paymentData.customer,
         customerEmail: paymentData.customerEmail,
         language: paymentData.language || 'HU',
         sdkVersion: SDK_VERSION,
-        methods: [paymentData.method || 'CARD'],
+        methods: ['CARD'],
+        recurring: {
+            times: paymentData.recurring.times || DEFAULT_TIMES,
+            until: paymentData.recurring.until || toISO8601DateString(DEFAULT_UNTIL),
+            maxAmount: paymentData.recurring.maxAmount || DEFAULT_MAX_AMOUNT
+        },
+        threeDSReqAuthMethod: '02', 
         total: String(paymentData.total),
         timeout: toISO8601DateString(new Date(Date.now() + 30 * 60 * 1000)),
         url: process.env.SIMPLEPAY_REDIRECT_URL || 'http://url.to.redirect',
@@ -53,7 +66,7 @@ const startPayment = async (paymentData: PaymentData) => {
         }
 
         const responseText = await response.text()
-        const responseJSON = JSON.parse(responseText) as SimplePayResponse
+        const responseJSON = JSON.parse(responseText) as SimplePayRecurringResponse
         simplepayLogger({ responseText, responseJSON })
 
         if (responseJSON.errorCodes) {
@@ -71,31 +84,6 @@ const startPayment = async (paymentData: PaymentData) => {
     }
 }
 
-const getPaymentResponse = (r: string, signature: string) => {
-    signature = decodeURIComponent(signature)
-    const rDecoded = Buffer.from(r, 'base64').toString('utf-8')
-    const rDecodedJSON = JSON.parse(rDecoded)
-    const currency = getCurrencyFromMerchantId(rDecodedJSON.m)
-    const { MERCHANT_KEY } = getSimplePayConfig(currency as Currency)
+const getRecurringPaymentResponse = (r: string, signature: string) => getPaymentResponse(r, signature)
 
-    if (!checkSignature(rDecoded, signature, MERCHANT_KEY || '')) {
-        simplepayLogger({ rDecoded, signature })
-        throw new Error('Invalid response signature')
-    }
-
-    const responseJson: SimplepayResult = JSON.parse(rDecoded)
-    const response = {
-        responseCode: responseJson.r,
-        transactionId: responseJson.t,
-        event: responseJson.e,
-        merchantId: responseJson.m,
-        orderRef: responseJson.o,
-    }
-
-    return response
-}
-
-export {
-    startPayment,
-    getPaymentResponse
-}
+export { startRecurringPayment, getRecurringPaymentResponse }

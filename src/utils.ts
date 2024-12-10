@@ -1,0 +1,56 @@
+import crypto from 'crypto'
+import { CURRENCIES, Currency, ISO8601DateString, SimplePayRequestBody } from "./types"
+
+export const simplepayLogger = (...args: any[]) => {
+    if (process.env.SIMPLEPAY_LOGGER !== 'true') {
+        return
+    }
+    console.log(...args)
+}
+
+export const getSimplePayConfig = (currency: Currency) => {
+    if (!CURRENCIES.includes(currency)) {
+        throw new Error(`Unsupported currency: ${currency}`)
+    }
+
+    const SIMPLEPAY_API_URL = 'https://secure.simplepay.hu/payment/v2'
+    const SIMPLEPAY_SANDBOX_URL = 'https://sandbox.simplepay.hu/payment/v2/start'
+    const SDK_VERSION = 'SimplePayV2.1_Rrd_0.6.1'
+    const MERCHANT_KEY = process.env[`SIMPLEPAY_MERCHANT_KEY_${currency}`]
+    const MERCHANT_ID = process.env[`SIMPLEPAY_MERCHANT_ID_${currency}`]
+    const API_URL = process.env.SIMPLEPAY_PRODUCTION === 'true' ? SIMPLEPAY_API_URL : SIMPLEPAY_SANDBOX_URL
+
+    return {
+        MERCHANT_KEY,
+        MERCHANT_ID,
+        API_URL,
+        SDK_VERSION
+    }
+}
+
+// escaping slashes for the request body to prevent strange SimplePay API errors (eg Missing Signature)
+export const prepareRequestBody = (body: SimplePayRequestBody) =>
+    JSON.stringify(body).replace(/\//g, '\\/')
+
+export const generateSignature = (body: string, merchantKey: string) => {
+    const hmac = crypto.createHmac('sha384', merchantKey.trim())
+    hmac.update(body, 'utf8')
+    return hmac.digest('base64')
+}
+
+export const checkSignature = (responseText: string, signature: string, merchantKey: string) =>
+    signature === generateSignature(responseText, merchantKey)
+
+export const toISO8601DateString = (date: Date): ISO8601DateString => date.toISOString().replace(/\.\d{3}Z$/, '+00:00')
+
+export const getCurrencyFromMerchantId = (merchantId: string) => {
+    const currency = Object.entries(process.env)
+        .find(([key, value]) =>
+            key.startsWith('SIMPLEPAY_MERCHANT_ID_') && value === merchantId
+        )?.[0]?.replace('SIMPLEPAY_MERCHANT_ID_', '') as Currency
+    if (!currency) {
+        throw new Error(`Merchant id not found in the environment: ${merchantId}`)
+    }
+    return currency
+}
+
