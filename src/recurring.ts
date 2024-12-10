@@ -1,6 +1,6 @@
 import crypto from 'crypto'
-import { SimplePayRecurringResponse, SimplePayRecurringRequestBody, RecurringPaymentData, TokenPaymentData, SimplePayTokenRequestBody, SimplePayTokenResponse } from './types'
-import { getSimplePayConfig, simplepayLogger, prepareRequestBody, generateSignature, checkSignature, toISO8601DateString} from './utils'
+import { SimplePayRecurringRequestBody, RecurringPaymentData, TokenPaymentData, SimplePayTokenRequestBody} from './types'
+import { getSimplePayConfig, simplepayLogger, toISO8601DateString, makeSimplePayRequest} from './utils'
 import { getPaymentResponse } from '.'
 
 const INTERVAL_IN_MONTHS = 6
@@ -39,49 +39,7 @@ const startRecurringPayment = async (paymentData: RecurringPaymentData) => {
         invoice: paymentData.invoice,
     }
 
-    const bodyString = prepareRequestBody(requestBody)
-    const signature = generateSignature(bodyString, MERCHANT_KEY)
-    simplepayLogger({ bodyString, signature })
-
-    try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Signature': signature,
-            },
-            body: bodyString,
-        })
-
-        simplepayLogger({ response })
-
-        if (!response.ok) {
-            throw new Error(`SimplePay API error: ${response.status}`)
-        }
-
-        const responseSignature = response.headers.get('Signature')
-        simplepayLogger({ responseSignature })
-        if (!responseSignature) {
-            throw new Error('Missing response signature')
-        }
-
-        const responseText = await response.text()
-        const responseJSON = JSON.parse(responseText) as SimplePayRecurringResponse
-        simplepayLogger({ responseText, responseJSON })
-
-        if (responseJSON.errorCodes) {
-            throw new Error(`SimplePay API error: ${responseJSON.errorCodes}`)
-        }
-
-        if (!checkSignature(responseText, responseSignature, MERCHANT_KEY)) {
-            throw new Error('Invalid response signature')
-        }
-
-        return responseJSON
-
-    } catch (error) {
-        throw error
-    }
+   return makeSimplePayRequest(API_URL, requestBody, MERCHANT_KEY)
 }
 
 const startTokenPayment = async (paymentData: TokenPaymentData) => {
@@ -112,49 +70,7 @@ const startTokenPayment = async (paymentData: TokenPaymentData) => {
         invoice: paymentData.invoice,
     }
 
-    const bodyString = prepareRequestBody(requestBody)
-    const signature = generateSignature(bodyString, MERCHANT_KEY)
-    simplepayLogger({ bodyString, signature })
-
-    try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Signature': signature,
-            },
-            body: bodyString,
-        })
-
-        simplepayLogger({ response })
-
-        if (!response.ok) {
-            throw new Error(`SimplePay API error: ${response.status}`)
-        }
-
-        const responseSignature = response.headers.get('Signature')
-        simplepayLogger({ responseSignature })
-        if (!responseSignature) {
-            throw new Error('Missing response signature')
-        }
-
-        const responseText = await response.text()
-        const responseJSON = JSON.parse(responseText) as SimplePayTokenResponse
-        simplepayLogger({ responseText, responseJSON })
-
-        if (responseJSON.errorCodes) {
-            throw new Error(`SimplePay API error: ${responseJSON.errorCodes}`)
-        }
-
-        if (!checkSignature(responseText, responseSignature, MERCHANT_KEY)) {
-            throw new Error('Invalid response signature')
-        }
-
-        return responseJSON
-
-    } catch (error) {
-        throw error
-    }
+  return  makeSimplePayRequest(API_URL, requestBody, MERCHANT_KEY)
 }
 
 const getRecurringPaymentResponse = (r: string, signature: string) => getPaymentResponse(r, signature)

@@ -20,7 +20,7 @@ const paymentData = {
         maxAmount: 12000
     }
 }
-describe.skip('SimplePay Recurring Tests', () => {
+describe('SimplePay Recurring Tests', () => {
     beforeEach(() => {
         // Clear all environment variables before each test
         delete process.env.SIMPLEPAY_MERCHANT_ID_HUF

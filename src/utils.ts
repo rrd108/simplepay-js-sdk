@@ -1,5 +1,5 @@
 import crypto from 'crypto'
-import { CURRENCIES, Currency, ISO8601DateString, SimplePayRequestBody } from "./types"
+import { CURRENCIES, Currency, ISO8601DateString, SimplePayRecurringRequestBody, SimplePayRecurringResponse, SimplePayRequestBody, SimplePayResponse, SimplePayTokenRequestBody, SimplePayTokenResponse } from "./types"
 
 export const simplepayLogger = (...args: any[]) => {
     if (process.env.SIMPLEPAY_LOGGER !== 'true') {
@@ -52,5 +52,55 @@ export const getCurrencyFromMerchantId = (merchantId: string) => {
         throw new Error(`Merchant id not found in the environment: ${merchantId}`)
     }
     return currency
+}
+
+export const makeSimplePayRequest = async <T extends SimplePayRequestBody | SimplePayRecurringRequestBody | SimplePayTokenRequestBody>(apiUrl: string, requestBody: T, merchantKey: string) => {
+    const bodyString = prepareRequestBody(requestBody)
+    const signature = generateSignature(bodyString, merchantKey)
+    simplepayLogger({ bodyString, signature })
+
+    try {
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Signature': signature,
+            },
+            body: bodyString,
+        })
+
+        simplepayLogger({ response })
+
+        if (!response.ok) {
+            throw new Error(`SimplePay API error: ${response.status}`)
+        }
+
+        const responseSignature = response.headers.get('Signature')
+        simplepayLogger({ responseSignature })
+        if (!responseSignature) {
+            throw new Error('Missing response signature')
+        }
+
+        const responseText = await response.text()
+        const responseJSON = JSON.parse(responseText) as T extends SimplePayRequestBody
+            ? SimplePayResponse
+            : T extends SimplePayRecurringRequestBody
+            ? SimplePayRecurringResponse
+            : SimplePayTokenResponse
+        simplepayLogger({ responseText, responseJSON })
+
+        if (responseJSON.errorCodes) {
+            throw new Error(`SimplePay API error: ${responseJSON.errorCodes}`)
+        }
+
+        if (!checkSignature(responseText, responseSignature, merchantKey)) {
+            throw new Error('Invalid response signature')
+        }
+
+        return responseJSON
+
+    } catch (error) {
+        throw error
+    }
 }
 

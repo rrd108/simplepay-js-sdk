@@ -1,6 +1,6 @@
 import crypto from 'crypto'
-import { PaymentData, SimplePayRequestBody, SimplePayResponse, SimplepayResult, Currency, CURRENCIES } from './types'
-import { simplepayLogger, getSimplePayConfig, prepareRequestBody, generateSignature, checkSignature, toISO8601DateString, getCurrencyFromMerchantId } from './utils'
+import { PaymentData, SimplePayRequestBody, SimplepayResult, Currency } from './types'
+import { simplepayLogger, getSimplePayConfig, checkSignature, toISO8601DateString, getCurrencyFromMerchantId, makeSimplePayRequest } from './utils'
 
 const startPayment = async (paymentData: PaymentData) => {
     const currency = paymentData.currency || 'HUF'
@@ -25,50 +25,8 @@ const startPayment = async (paymentData: PaymentData) => {
         url: process.env.SIMPLEPAY_REDIRECT_URL || 'http://url.to.redirect',
         invoice: paymentData.invoice,
     }
-
-    const bodyString = prepareRequestBody(requestBody)
-    const signature = generateSignature(bodyString, MERCHANT_KEY)
-    simplepayLogger({ bodyString, signature })
-
-    try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Signature': signature,
-            },
-            body: bodyString,
-        })
-
-        simplepayLogger({ response })
-
-        if (!response.ok) {
-            throw new Error(`SimplePay API error: ${response.status}`)
-        }
-
-        const responseSignature = response.headers.get('Signature')
-        simplepayLogger({ responseSignature })
-        if (!responseSignature) {
-            throw new Error('Missing response signature')
-        }
-
-        const responseText = await response.text()
-        const responseJSON = JSON.parse(responseText) as SimplePayResponse
-        simplepayLogger({ responseText, responseJSON })
-
-        if (responseJSON.errorCodes) {
-            throw new Error(`SimplePay API error: ${responseJSON.errorCodes}`)
-        }
-
-        if (!checkSignature(responseText, responseSignature, MERCHANT_KEY)) {
-            throw new Error('Invalid response signature')
-        }
-
-        return responseJSON
-
-    } catch (error) {
-        throw error
-    }
+    
+    return makeSimplePayRequest(API_URL, requestBody, MERCHANT_KEY)
 }
 
 const getPaymentResponse = (r: string, signature: string) => {
