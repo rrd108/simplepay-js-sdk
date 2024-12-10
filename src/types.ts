@@ -53,6 +53,12 @@ interface RecurringPaymentData extends PaymentData {
     recurring: Recurring
  }
 
+interface TokenPaymentData extends Omit<PaymentData, 'method'> {
+    method: 'CARD',
+    customer: string,
+    token: string
+ }
+
 interface SimplePayRequestBody extends Omit<PaymentData, 'total'> {
     total: string
     salt: string
@@ -67,6 +73,13 @@ interface SimplePayRecurringRequestBody extends SimplePayRequestBody {
     customer: string
     recurring: Recurring
     threeDSReqAuthMethod: '02'  // only registered users can use this
+}
+
+interface SimplePayTokenRequestBody extends SimplePayRequestBody {
+    customer: string
+    token: string
+    threeDSReqAuthMethod: '02'  // only registered users can use this
+    type: 'MIT' // Merchant Initiated Transaction
 }
 
 interface SimplePayResponse {
@@ -85,6 +98,8 @@ interface SimplePayRecurringResponse extends SimplePayResponse {
     tokens: string[]
 }
 
+interface SimplePayTokenResponse extends Omit<SimplePayResponse, 'paymentUrl' | 'timeout'> { }
+
 interface SimplepayResult {
     r: number   // response code
     t: string   // transaction id
@@ -93,4 +108,4 @@ interface SimplepayResult {
     o: string   // order id
 }
 
-export { PaymentData, SimplePayRequestBody, SimplePayResponse, SimplepayResult, RecurringPaymentData, CURRENCIES, Currency, PaymentMethod, LANGUAGES, Language, ISO8601DateString, SimplePayRecurringResponse, SimplePayRecurringRequestBody }
+export { PaymentData, SimplePayRequestBody, SimplePayResponse, SimplepayResult, RecurringPaymentData, CURRENCIES, Currency, PaymentMethod, LANGUAGES, Language, ISO8601DateString, SimplePayRecurringResponse, SimplePayRecurringRequestBody, TokenPaymentData, SimplePayTokenRequestBody, SimplePayTokenResponse }

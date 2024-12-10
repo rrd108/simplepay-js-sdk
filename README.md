@@ -33,7 +33,9 @@ Set the following environment variables in your `.env` file:
 
 You should create 3 endpoints, to start the payment, get the payment response and handle the IPN.
 
-### Start Payment Endpoint
+### One Time Payment
+
+#### Start Payment Endpoint
 
 ```typescript
 import { startPayment } from 'simplepay-js-sdk'
@@ -64,7 +66,7 @@ try {
 
 `response.paymentUrl` will contain the Simplepay payment URL, which you can redirect the customer to.
 
-### Get Payment Response Endpoint
+#### Get Payment Response Endpoint
 
 When the customer returns from the Simplepay payment page, you need to get the payment response at your `SIMPLEPAY_REDIRECT_URL`. The url will contain 2 parameters: `r` and `s`.
 
@@ -84,7 +86,7 @@ const response = getPaymentResponse(r, s)
 - `merchantId`: the merchant id
 - `orderRef`: the order id
 
-### IPN Endpoint
+#### IPN Endpoint
 
 Simplepay will send a `POST` request to the IPN url and you should send a response back.
 At this endpoint you should
@@ -93,6 +95,75 @@ At this endpoint you should
 - add a `receiveDate` property to the received JSON
 - calculate the new signature - use `generateSignature(responseText, SIMPLEPAY_MERCHANT_KEY_HUF)`
 - send the `response` with the new `signature`
+
+
+### Recurring Payment
+
+#### Start Recurring Payment Endpoint
+
+Here you have to use the `startRecurringPayment()` function what works the same way as the `startPayment()` function. The only difference is that you have to pass 2 additional properties: `customer` and `recurring`.
+
+```typescript
+try {
+  const response = await startRecurringPayment({
+    // ... other preoperties
+    customer: 'Radharadhya Dasa',
+    recurring: {
+      times: 3, // how many times the payment will be made, number of tokens
+      until: '2025-12-31T18:00:00+02:00', // the end date of the recurring payment
+      maxAmount: 100000 // the maximum amount of the recurring payment
+    }
+  })
+}
+```
+
+#### Get Recurring Payment Response Endpoint
+
+It is the same as the `getPaymentResponse()` function, but with a different function name: `getRecurringPaymentResponse()`.
+The response will have the same properties as the `getPaymentResponse()` function, but an additional `tokens` property, what will contain the tokens of the registered cards.
+
+You are responsible to save the tokens to your database, so you can use them later to make a payment.
+
+#### IPN Endpoint on card registration
+
+It works the same as the `IPN` endpoint of the one time payment.
+The response will have the same properties, and 2 additional properties:
+
+ - `cardMask`: xxxx-xxxx-xxxx-1234 - the masked card number what is registered
+ - `expiry`: 2025-01-31T00:00:00+02:00 - the expiry date of the registered card
+
+ #### Token Payment Endpoint
+
+ After a card is registered you can use the tokens to make a payment without any user intercation.
+
+```typescript
+import { startTokenPayment } from 'simplepay-js-sdk'
+
+try {
+  const response = await startTokenPayment({
+    orderRef: 'order-120',
+    total: 1212,
+    currency: 'HUF', // optional, HUF | EUR | USD, defaults to HUF
+    customer: 'Radharadhya Dasa',
+    customerEmail: 'rrd@webmania.cc',
+    language: 'HU', // optional, AR | BG | CS | DE | EN | ES | FR | IT | HR | HU | PL | RO | RU | SK | TR | ZH, defaults to HU
+    method: 'CARD', // must be CARD
+    token: '1234567890123456',  // one unused token of the registered card
+    invoice: {
+      name: 'Radharadhya Dasa',
+      country: 'HU',
+      state: 'Budapest',
+      city: 'Budapest',
+      zip: '1234',
+      address: 'Sehol u. 0',
+    },
+  })
+  return response
+} catch (error) {
+  console.error('Payment initiation failed:', error)
+  return error
+}
+```
 
 ## License
 
