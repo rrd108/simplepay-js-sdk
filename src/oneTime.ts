@@ -3,10 +3,10 @@ import { PaymentData, SimplePayRequestBody } from './types'
 import { simplepayLogger, getSimplePayConfig, toISO8601DateString, makeSimplePayRequest } from './utils'
 
 const startPayment = async (paymentData: PaymentData) => {
-    simplepayLogger({  paymentData })
+    simplepayLogger({ function: 'SimplePay/startPayment', paymentData })
     const currency = paymentData.currency || 'HUF'
     const { MERCHANT_KEY, MERCHANT_ID, API_URL, SDK_VERSION } = getSimplePayConfig(currency)
-    simplepayLogger({ MERCHANT_KEY, MERCHANT_ID, API_URL })
+    simplepayLogger({ function: 'SimplePay/startPayment', MERCHANT_KEY, MERCHANT_ID, API_URL })
 
     if (!MERCHANT_KEY || !MERCHANT_ID) {
         throw new Error(`Missing SimplePay configuration for ${currency}`)
