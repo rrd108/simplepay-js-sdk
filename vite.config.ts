@@ -6,7 +6,8 @@ export default defineConfig({
     plugins: [
         dts({
             rollupTypes: true,
-            outDir: 'dist'
+            outDir: 'dist', 
+            include: ['src/**/*']
         })
     ],
     build: {
