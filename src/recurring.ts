@@ -1,7 +1,6 @@
 import crypto from 'crypto'
 import { SimplePayRecurringRequestBody, RecurringPaymentData, TokenPaymentData, SimplePayTokenRequestBody} from './types'
 import { getSimplePayConfig, simplepayLogger, toISO8601DateString, makeSimplePayTokenRequest, makeSimplePayRecurringRequest} from './utils'
-import { getPaymentResponse } from '.'
 
 const INTERVAL_IN_MONTHS = 6
 const DEFAULT_UNTIL = new Date(Date.now() + INTERVAL_IN_MONTHS * 30 * 24 * 60 * 60 * 1000)
@@ -9,10 +8,10 @@ const DEFAULT_MAX_AMOUNT = 12000
 const DEFAULT_TIMES = 3
 
 const startRecurringPayment = async (paymentData: RecurringPaymentData) => {
-    simplepayLogger({ startRecurringPayment: paymentData })
+    simplepayLogger({ paymentData })
     const currency = paymentData.currency || 'HUF'
-    const { MERCHANT_KEY, MERCHANT_ID, API_URL_RECURRING, SDK_VERSION } = getSimplePayConfig(currency)
-    simplepayLogger({ MERCHANT_KEY, MERCHANT_ID, API_URL_RECURRING })
+    const { MERCHANT_KEY, MERCHANT_ID, API_URL, SDK_VERSION } = getSimplePayConfig(currency)
+    simplepayLogger({ MERCHANT_KEY, MERCHANT_ID, API_URL })
 
     if (!MERCHANT_KEY || !MERCHANT_ID) {
         throw new Error(`Missing SimplePay configuration for ${currency}`)
@@ -40,11 +39,11 @@ const startRecurringPayment = async (paymentData: RecurringPaymentData) => {
         invoice: paymentData.invoice,
     }
 
-   return makeSimplePayRecurringRequest(API_URL_RECURRING, requestBody, MERCHANT_KEY)
+   return makeSimplePayRecurringRequest(API_URL, requestBody, MERCHANT_KEY)
 }
 
 const startTokenPayment = async (paymentData: TokenPaymentData) => {
-    simplepayLogger({ startTokenPayment: paymentData })
+    simplepayLogger({ paymentData })
     const currency = paymentData.currency || 'HUF'
     const { MERCHANT_KEY, MERCHANT_ID, API_URL_RECURRING, SDK_VERSION } = getSimplePayConfig(currency)
     simplepayLogger({ MERCHANT_KEY, MERCHANT_ID, API_URL_RECURRING })
@@ -75,6 +74,4 @@ const startTokenPayment = async (paymentData: TokenPaymentData) => {
   return makeSimplePayTokenRequest(API_URL_RECURRING, requestBody, MERCHANT_KEY)
 }
 
-const getRecurringPaymentResponse = (r: string, signature: string) => getPaymentResponse(r, signature)
-
-export { startRecurringPayment, getRecurringPaymentResponse, startTokenPayment }
+export { startRecurringPayment, startTokenPayment }

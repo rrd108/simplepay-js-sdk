@@ -100,12 +100,23 @@ interface SimplePayRecurringResponse extends SimplePayResponse {
 
 interface SimplePayTokenResponse extends Omit<SimplePayResponse, 'paymentUrl' | 'timeout'> { }
 
-interface SimplepayResult {
+type SimplePayEvents = 'SUCCESS' | 'FAIL' | 'TIMEOUT' | 'CANCEL'
+
+interface SimplePayAPIResult {
     r: number   // response code
     t: string   // transaction id
-    e: 'success' | 'fail' | 'timeout' | 'cancel'   // event
+    e: SimplePayEvents   // event
     m: string   // merchant id
     o: string   // order id
 }
 
-export { PaymentData, SimplePayRequestBody, SimplePayResponse, SimplepayResult, RecurringPaymentData, CURRENCIES, Currency, PaymentMethod, LANGUAGES, Language, ISO8601DateString, SimplePayRecurringResponse, SimplePayRecurringRequestBody, TokenPaymentData, SimplePayTokenRequestBody, SimplePayTokenResponse }
+interface SimplePayResult {
+    responseCode: number,
+    transactionId: string,
+    event: SimplePayEvents,
+    merchantId: string,
+    orderRef: string,
+    tokens?: string[],
+}
+
+export { PaymentData, SimplePayRequestBody, SimplePayResponse, SimplePayAPIResult, SimplePayResult, RecurringPaymentData, CURRENCIES, Currency, PaymentMethod, LANGUAGES, Language, ISO8601DateString, SimplePayRecurringResponse, SimplePayRecurringRequestBody, TokenPaymentData, SimplePayTokenRequestBody, SimplePayTokenResponse }

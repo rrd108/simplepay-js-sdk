@@ -1,11 +1,21 @@
 import crypto from 'crypto'
-import { CURRENCIES, Currency, ISO8601DateString, SimplePayRecurringRequestBody, SimplePayRecurringResponse, SimplePayRequestBody, SimplePayResponse, SimplePayTokenRequestBody, SimplePayTokenResponse } from "./types"
+import { CURRENCIES, Currency, ISO8601DateString, SimplePayAPIResult, SimplePayRecurringRequestBody, SimplePayRecurringResponse, SimplePayRequestBody, SimplePayResponse, SimplePayResult, SimplePayTokenRequestBody, SimplePayTokenResponse } from "./types"
 
 export const simplepayLogger = (...args: any[]) => {
     if (process.env.SIMPLEPAY_LOGGER !== 'true') {
         return
     }
-    console.log(...args)
+
+    let caller = '👉 '
+    try {
+        throw new Error();
+    } catch (e: any) {
+        // Split the stack trace and extract the caller function name
+        const callerLine = e.stack.split('\n')[2];
+        const matches = callerLine.match(/at\s+(.*?)\s+/);
+        caller += matches ? matches[1] : '?';
+    }
+    console.log(caller, ...args)
 }
 
 export const getSimplePayConfig = (currency: Currency) => {
@@ -114,3 +124,28 @@ const makeRequest = async (apiUrl: string, requestBody: SimplePayRequestBody | S
     }
 }
 
+export const getPaymentResponse = (r: string, signature: string) => {
+    simplepayLogger({r, signature })
+    signature = decodeURIComponent(signature)
+    const rDecoded = Buffer.from(r, 'base64').toString('utf-8')
+    const rDecodedJSON = JSON.parse(rDecoded) as SimplePayAPIResult
+    const currency = getCurrencyFromMerchantId(rDecodedJSON.m)
+    const { MERCHANT_KEY } = getSimplePayConfig(currency as Currency)
+
+    if (!checkSignature(rDecoded, signature, MERCHANT_KEY || '')) {
+        simplepayLogger({ rDecoded, signature })
+        throw new Error('Invalid response signature')
+    }
+
+    const responseJson = JSON.parse(rDecoded)
+    const response: SimplePayResult = {
+        responseCode: responseJson.r,
+        transactionId: responseJson.t,
+        event: responseJson.e,
+        merchantId: responseJson.m,
+        orderRef: responseJson.o,
+        tokens: responseJson.tokens,
+    }
+
+    return response
+}

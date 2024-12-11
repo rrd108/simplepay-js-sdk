@@ -1,9 +1,9 @@
 import crypto from 'crypto'
-import { PaymentData, SimplePayRequestBody, SimplepayResult, Currency } from './types'
-import { simplepayLogger, getSimplePayConfig, checkSignature, toISO8601DateString, getCurrencyFromMerchantId, makeSimplePayRequest } from './utils'
+import { PaymentData, SimplePayRequestBody } from './types'
+import { simplepayLogger, getSimplePayConfig, toISO8601DateString, makeSimplePayRequest } from './utils'
 
 const startPayment = async (paymentData: PaymentData) => {
-    simplepayLogger({ startPayment: paymentData })
+    simplepayLogger({  paymentData })
     const currency = paymentData.currency || 'HUF'
     const { MERCHANT_KEY, MERCHANT_ID, API_URL, SDK_VERSION } = getSimplePayConfig(currency)
     simplepayLogger({ MERCHANT_KEY, MERCHANT_ID, API_URL })
@@ -30,32 +30,4 @@ const startPayment = async (paymentData: PaymentData) => {
     return makeSimplePayRequest(API_URL, requestBody, MERCHANT_KEY)
 }
 
-const getPaymentResponse = (r: string, signature: string) => {
-    simplepayLogger({ getPaymentResponse: { r, signature } })
-    signature = decodeURIComponent(signature)
-    const rDecoded = Buffer.from(r, 'base64').toString('utf-8')
-    const rDecodedJSON = JSON.parse(rDecoded)
-    const currency = getCurrencyFromMerchantId(rDecodedJSON.m)
-    const { MERCHANT_KEY } = getSimplePayConfig(currency as Currency)
-
-    if (!checkSignature(rDecoded, signature, MERCHANT_KEY || '')) {
-        simplepayLogger({ rDecoded, signature })
-        throw new Error('Invalid response signature')
-    }
-
-    const responseJson: SimplepayResult = JSON.parse(rDecoded)
-    const response = {
-        responseCode: responseJson.r,
-        transactionId: responseJson.t,
-        event: responseJson.e,
-        merchantId: responseJson.m,
-        orderRef: responseJson.o,
-    }
-
-    return response
-}
-
-export {
-    startPayment,
-    getPaymentResponse,
-}
+export { startPayment }

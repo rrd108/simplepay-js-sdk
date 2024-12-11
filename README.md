@@ -110,19 +110,20 @@ try {
     customer: 'Radharadhya Dasa',
     recurring: {
       times: 3, // how many times the payment will be made, number of tokens
-      until: '2025-12-31T18:00:00+02:00', // the end date of the recurring payment
+      until: '2025-12-31T18:00:00+02:00', // the end date of the recurring payment - use the toISO8601DateString() helper function
       maxAmount: 100000 // the maximum amount of the recurring payment
     }
   })
 }
 ```
 
+The response will have an additional `tokens` property, what will contain the tokens of the registered cards.
+You are responsible to save the tokens to your database, so you can use them later to make a payment.
+
+
 #### Get Recurring Payment Response Endpoint
 
-It is the same as the `getPaymentResponse()` function, but with a different function name: `getRecurringPaymentResponse()`.
-The response will have the same properties as the `getPaymentResponse()` function, but an additional `tokens` property, what will contain the tokens of the registered cards.
-
-You are responsible to save the tokens to your database, so you can use them later to make a payment.
+Use the same enpoint as the one time payment.
 
 #### IPN Endpoint on card registration
 
