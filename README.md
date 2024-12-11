@@ -135,33 +135,39 @@ The response will have the same properties, and 2 additional properties:
 
  #### Token Payment Endpoint
 
- After a card is registered you can use the tokens to make a payment without any user intercation.
+ After a card is registered you can use the tokens to make a payment without any user intercation for example by a daily `cron`
 
 ```typescript
 import { startTokenPayment } from 'simplepay-js-sdk'
 
+// TODO: get payment data from your database, where you saved the tokens
+
+const payment = {
+  token: '1234567890123456',
+  total: 1212,
+  currency: 'HUF' as Currency,
+  customer: 'Radharadhya Dasa',
+  customerEmail: 'rrd@webmania.cc',
+  invoice: {
+    name: 'Radharadhya Dasa',
+    country: 'HU',
+    state: 'Budapest',
+    city: 'Budapest',
+    zip: '1234',
+    address: 'Sehol u. 0',
+  },
+}
+
 try {
   const response = await startTokenPayment({
-    orderRef: 'order-120',
-    total: 1212,
-    currency: 'HUF', // optional, HUF | EUR | USD, defaults to HUF
-    customer: 'Radharadhya Dasa',
-    customerEmail: 'rrd@webmania.cc',
-    language: 'HU', // optional, AR | BG | CS | DE | EN | ES | FR | IT | HR | HU | PL | RO | RU | SK | TR | ZH, defaults to HU
+    orderRef: Date.now().toString(),
+    language: 'HU',
     method: 'CARD', // must be CARD
-    token: '1234567890123456',  // one unused token of the registered card
-    invoice: {
-      name: 'Radharadhya Dasa',
-      country: 'HU',
-      state: 'Budapest',
-      city: 'Budapest',
-      zip: '1234',
-      address: 'Sehol u. 0',
-    },
+    ...payment,
   })
   return response
 } catch (error) {
-  console.error('Payment initiation failed:', error)
+  console.error('Token payment initiation failed:', error)
   return error
 }
 ```
