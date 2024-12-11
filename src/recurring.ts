@@ -9,12 +9,13 @@ const DEFAULT_MAX_AMOUNT = 12000
 const DEFAULT_TIMES = 3
 
 const startRecurringPayment = async (paymentData: RecurringPaymentData) => {
+    simplepayLogger({ startRecurringPayment: paymentData })
     const currency = paymentData.currency || 'HUF'
-    const { MERCHANT_KEY, MERCHANT_ID, API_URL, SDK_VERSION } = getSimplePayConfig(currency)
-    simplepayLogger({ MERCHANT_KEY, MERCHANT_ID, API_URL })
+    const { MERCHANT_KEY, MERCHANT_ID, API_URL_RECURRING, SDK_VERSION } = getSimplePayConfig(currency)
+    simplepayLogger({ MERCHANT_KEY, MERCHANT_ID, API_URL_RECURRING })
 
     if (!MERCHANT_KEY || !MERCHANT_ID) {
-        throw new Error('Missing SimplePay configuration')
+        throw new Error(`Missing SimplePay configuration for ${currency}`)
     }
 
     const requestBody: SimplePayRecurringRequestBody = {
@@ -39,16 +40,17 @@ const startRecurringPayment = async (paymentData: RecurringPaymentData) => {
         invoice: paymentData.invoice,
     }
 
-   return makeSimplePayRecurringRequest(API_URL, requestBody, MERCHANT_KEY)
+   return makeSimplePayRecurringRequest(API_URL_RECURRING, requestBody, MERCHANT_KEY)
 }
 
 const startTokenPayment = async (paymentData: TokenPaymentData) => {
+    simplepayLogger({ startTokenPayment: paymentData })
     const currency = paymentData.currency || 'HUF'
-    const { MERCHANT_KEY, MERCHANT_ID, API_URL, SDK_VERSION } = getSimplePayConfig(currency)
-    simplepayLogger({ MERCHANT_KEY, MERCHANT_ID, API_URL })
+    const { MERCHANT_KEY, MERCHANT_ID, API_URL_RECURRING, SDK_VERSION } = getSimplePayConfig(currency)
+    simplepayLogger({ MERCHANT_KEY, MERCHANT_ID, API_URL_RECURRING })
 
     if (!MERCHANT_KEY || !MERCHANT_ID) {
-        throw new Error('Missing SimplePay configuration')
+        throw new Error(`Missing SimplePay configuration for ${currency}`)
     }
 
     const requestBody: SimplePayTokenRequestBody = {
@@ -66,11 +68,11 @@ const startTokenPayment = async (paymentData: TokenPaymentData) => {
         threeDSReqAuthMethod: '02',
         total: String(paymentData.total),
         timeout: toISO8601DateString(new Date(Date.now() + 30 * 60 * 1000)),
-        url: process.env.SIMPLEPAY_REDIRECT_URL || 'http://url.to.redirect',
+        url: process.env.SIMPLEPAY_REDIRECT_URL || 'http://recurring.url.to.redirect',
         invoice: paymentData.invoice,
     }
 
-  return makeSimplePayTokenRequest(API_URL, requestBody, MERCHANT_KEY)
+  return makeSimplePayTokenRequest(API_URL_RECURRING, requestBody, MERCHANT_KEY)
 }
 
 const getRecurringPaymentResponse = (r: string, signature: string) => getPaymentResponse(r, signature)

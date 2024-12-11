@@ -19,11 +19,13 @@ export const getSimplePayConfig = (currency: Currency) => {
     const MERCHANT_KEY = process.env[`SIMPLEPAY_MERCHANT_KEY_${currency}`]
     const MERCHANT_ID = process.env[`SIMPLEPAY_MERCHANT_ID_${currency}`]
     const API_URL = process.env.SIMPLEPAY_PRODUCTION === 'true' ? SIMPLEPAY_API_URL : SIMPLEPAY_SANDBOX_URL
+    const API_URL_RECURRING = process.env.SIMPLEPAY_PRODUCTION === 'true' ? SIMPLEPAY_API_URL : 'https://sandbox.simplepay.hu/payment/v2/dorecurring'
 
     return {
         MERCHANT_KEY,
         MERCHANT_ID,
         API_URL,
+        API_URL_RECURRING,
         SDK_VERSION
     }
 }
