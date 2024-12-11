@@ -1,9 +1,9 @@
-type PaymentMethod = 'CARD' | 'WIRE'
+export type PaymentMethod = 'CARD' | 'WIRE'
 
-const CURRENCIES = ['HUF', 'EUR', 'USD'] as const
-type Currency = typeof CURRENCIES[number]
+export const CURRENCIES = ['HUF', 'EUR', 'USD'] as const
+export type Currency = typeof CURRENCIES[number]
 
-const LANGUAGES = [
+export const LANGUAGES = [
     'AR', // Arabic
     'BG', // Bulgarian
     'CS', // Czech
@@ -21,9 +21,9 @@ const LANGUAGES = [
     'TR', // Turkish
     'ZH', // Chinese
 ] as const
-type Language = typeof LANGUAGES[number]
+export type Language = typeof LANGUAGES[number]
 
-interface PaymentData {
+export interface PaymentData {
     orderRef: string
     total: number | string
     customerEmail: string
@@ -42,24 +42,24 @@ interface PaymentData {
     }
 }
 
-type ISO8601DateString = string
-interface Recurring {
+export type ISO8601DateString = string
+export interface Recurring {
     times: number,
     until: ISO8601DateString,
     maxAmount: number
 }
-interface RecurringPaymentData extends PaymentData {
+export interface RecurringPaymentData extends PaymentData {
     customer: string,
     recurring: Recurring
- }
+}
 
-interface TokenPaymentData extends Omit<PaymentData, 'method'> {
+export interface TokenPaymentData extends Omit<PaymentData, 'method'> {
     method: 'CARD',
     customer: string,
     token: string
- }
+}
 
-interface SimplePayRequestBody extends Omit<PaymentData, 'total'> {
+export interface SimplePayRequestBody extends Omit<PaymentData, 'total'> {
     total: string
     salt: string
     merchant: string
@@ -69,20 +69,20 @@ interface SimplePayRequestBody extends Omit<PaymentData, 'total'> {
     url: string
 }
 
-interface SimplePayRecurringRequestBody extends SimplePayRequestBody {
+export interface SimplePayRecurringRequestBody extends SimplePayRequestBody {
     customer: string
     recurring: Recurring
     threeDSReqAuthMethod: '02'  // only registered users can use this
 }
 
-interface SimplePayTokenRequestBody extends SimplePayRequestBody {
+export interface SimplePayTokenRequestBody extends SimplePayRequestBody {
     customer: string
     token: string
     threeDSReqAuthMethod: '02'  // only registered users can use this
     type: 'MIT' // Merchant Initiated Transaction
 }
 
-interface SimplePayResponse {
+export interface SimplePayResponse {
     salt: string
     merchant: string
     orderRef: string
@@ -94,15 +94,15 @@ interface SimplePayResponse {
     errorCodes?: string[]
 }
 
-interface SimplePayRecurringResponse extends SimplePayResponse {
+export interface SimplePayRecurringResponse extends SimplePayResponse {
     tokens: string[]
 }
 
-interface SimplePayTokenResponse extends Omit<SimplePayResponse, 'paymentUrl' | 'timeout'> { }
+export interface SimplePayTokenResponse extends Omit<SimplePayResponse, 'paymentUrl' | 'timeout'> { }
 
-type SimplePayEvents = 'SUCCESS' | 'FAIL' | 'TIMEOUT' | 'CANCEL'
+export type SimplePayEvents = 'SUCCESS' | 'FAIL' | 'TIMEOUT' | 'CANCEL'
 
-interface SimplePayAPIResult {
+export interface SimplePayAPIResult {
     r: number   // response code
     t: string   // transaction id
     e: SimplePayEvents   // event
@@ -110,7 +110,7 @@ interface SimplePayAPIResult {
     o: string   // order id
 }
 
-interface SimplePayResult {
+export interface SimplePayResult {
     responseCode: number,
     transactionId: string,
     event: SimplePayEvents,
@@ -118,5 +118,3 @@ interface SimplePayResult {
     orderRef: string,
     tokens?: string[],
 }
-
-export { PaymentData, SimplePayRequestBody, SimplePayResponse, SimplePayAPIResult, SimplePayResult, RecurringPaymentData, CURRENCIES, Currency, PaymentMethod, LANGUAGES, Language, ISO8601DateString, SimplePayRecurringResponse, SimplePayRecurringRequestBody, TokenPaymentData, SimplePayTokenRequestBody, SimplePayTokenResponse }
