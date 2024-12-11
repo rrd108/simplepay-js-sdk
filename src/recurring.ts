@@ -1,6 +1,6 @@
 import crypto from 'crypto'
 import { SimplePayRecurringRequestBody, RecurringPaymentData, TokenPaymentData, SimplePayTokenRequestBody} from './types'
-import { getSimplePayConfig, simplepayLogger, toISO8601DateString, makeSimplePayRequest} from './utils'
+import { getSimplePayConfig, simplepayLogger, toISO8601DateString, makeSimplePayTokenRequest, makeSimplePayRecurringRequest} from './utils'
 import { getPaymentResponse } from '.'
 
 const INTERVAL_IN_MONTHS = 6
@@ -39,7 +39,7 @@ const startRecurringPayment = async (paymentData: RecurringPaymentData) => {
         invoice: paymentData.invoice,
     }
 
-   return makeSimplePayRequest(API_URL, requestBody, MERCHANT_KEY)
+   return makeSimplePayRecurringRequest(API_URL, requestBody, MERCHANT_KEY)
 }
 
 const startTokenPayment = async (paymentData: TokenPaymentData) => {
@@ -70,7 +70,7 @@ const startTokenPayment = async (paymentData: TokenPaymentData) => {
         invoice: paymentData.invoice,
     }
 
-  return  makeSimplePayRequest(API_URL, requestBody, MERCHANT_KEY)
+  return makeSimplePayTokenRequest(API_URL, requestBody, MERCHANT_KEY)
 }
 
 const getRecurringPaymentResponse = (r: string, signature: string) => getPaymentResponse(r, signature)

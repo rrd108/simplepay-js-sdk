@@ -29,7 +29,7 @@ export const getSimplePayConfig = (currency: Currency) => {
 }
 
 // escaping slashes for the request body to prevent strange SimplePay API errors (eg Missing Signature)
-export const prepareRequestBody = (body: SimplePayRequestBody) =>
+export const prepareRequestBody = (body: any) =>
     JSON.stringify(body).replace(/\//g, '\\/')
 
 export const generateSignature = (body: string, merchantKey: string) => {
@@ -54,7 +54,19 @@ export const getCurrencyFromMerchantId = (merchantId: string) => {
     return currency
 }
 
-export const makeSimplePayRequest = async <T extends SimplePayRequestBody | SimplePayRecurringRequestBody | SimplePayTokenRequestBody>(apiUrl: string, requestBody: T, merchantKey: string) => {
+export const makeSimplePayRequest = async (apiUrl: string, requestBody: SimplePayRequestBody, merchantKey: string) => {
+    return makeRequest(apiUrl, requestBody, merchantKey) as Promise<SimplePayResponse>
+}
+
+export const makeSimplePayRecurringRequest = async (apiUrl: string, requestBody: SimplePayRecurringRequestBody, merchantKey: string) => {
+    return makeRequest(apiUrl, requestBody, merchantKey) as Promise<SimplePayRecurringResponse>
+}
+
+export const makeSimplePayTokenRequest = async (apiUrl: string, requestBody: SimplePayTokenRequestBody, merchantKey: string) => {
+    return makeRequest(apiUrl, requestBody, merchantKey) as Promise<SimplePayTokenResponse>
+}
+
+const makeRequest = async (apiUrl: string, requestBody: SimplePayRequestBody | SimplePayRecurringRequestBody | SimplePayTokenRequestBody, merchantKey: string) => {
     const bodyString = prepareRequestBody(requestBody)
     const signature = generateSignature(bodyString, merchantKey)
     simplepayLogger({ bodyString, signature })
@@ -82,11 +94,7 @@ export const makeSimplePayRequest = async <T extends SimplePayRequestBody | Simp
         }
 
         const responseText = await response.text()
-        const responseJSON = JSON.parse(responseText) as T extends SimplePayRequestBody
-            ? SimplePayResponse
-            : T extends SimplePayRecurringRequestBody
-            ? SimplePayRecurringResponse
-            : SimplePayTokenResponse
+        const responseJSON = JSON.parse(responseText) as { errorCodes?: string[] }
         simplepayLogger({ responseText, responseJSON })
 
         if (responseJSON.errorCodes) {
