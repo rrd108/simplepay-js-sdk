@@ -1,12 +1,14 @@
 # SimplePay JS SDK
 
-A lightweight utility for integrating Hungary's SimplePay payments in Node.js applications.
+Egy pehelysúlyú segédprogram a magyarországi SimplePay fizetések integrálásához Node.js alkalmazásokban.
 
 ![SimplePay Logo](simplepay_logo.jpg)
 
-Please read the [SimplePay documentation](https://simplepay.hu/fejlesztoknek) for more information.
+További információkért kérlek, olvasd el a [SimplePay dokumentációt](https://simplepay.hu/fejlesztoknek).
 
-## Installation
+> 🫵 Ha a csomag hasznos a számodra, akkor ne feletjs el rányomni a star-ra GitHub-on.
+
+## Telepítés
 
 ```bash
 # npm
@@ -19,23 +21,23 @@ yarn add simplepay-js-sdk
 pnpm add simplepay-js-sdk
 ```
 
-## Configuration
+## Konfiguráció
 
-Set the following environment variables in your `.env` file:
+Állítsd be a következő környezeti változókat a `.env` fájlban:
 
-- `SIMPLEPAY_LOGGER` If it set to `true`, it will log varibles - useful only for debugging.
-- `SIMPLEPAY_MERCHANT_KEY_HUF` Your Simplepay secret merchant key. Set `SIMPLEPAY_MERCHANT_KEY_EUR` and `SIMPLEPAY_MERCHANT_KEY_USD` for accepting EUR and USD payments.
-- `SIMPLEPAY_MERCHANT_ID_HUF` Your Simplepay merchant id. Set `SIMPLEPAY_MERCHANT_ID_EUR` and `SIMPLEPAY_MERCHANT_ID_USD` for accepting EUR and USD payments.
-- `SIMPLEPAY_PRODUCTION` If it set to `true`, it will use production environment, otherwise it will use sandbox environment.
-- `SIMPLEPAY_REDIRECT_URL` The URL of your site, where the customer will be redirected after the payment.
+- `SIMPLEPAY_LOGGER` Ha `true`-ra van állítva, naplózza a változókat - csak hibakereséshez hasznos.
+- `SIMPLEPAY_MERCHANT_KEY_HUF` A te SimplePay titkos kereskedői kulcsod. Állítsd be a `SIMPLEPAY_MERCHANT_KEY_EUR` és `SIMPLEPAY_MERCHANT_KEY_USD` értékeket EUR és USD fizetések elfogadásához.
+- `SIMPLEPAY_MERCHANT_ID_HUF` A te SimplePay kereskedői azonosítód. Állítsd be a `SIMPLEPAY_MERCHANT_ID_EUR` és `SIMPLEPAY_MERCHANT_ID_USD` értékeket EUR és USD fizetések elfogadásához.
+- `SIMPLEPAY_PRODUCTION` Ha `true`-ra van állítva, éles környezetet használ, egyébként teszt környezetet.
+- `SIMPLEPAY_REDIRECT_URL` A te weboldalad URL-je, ahova a vásárló átirányításra kerül a fizetés után.
 
-## Usage
+## Használat
 
-You should create 3 endpoints, to start the payment, get the payment response and handle the IPN.
+Három végpontot kell létrehoznia: egyet a fizetés indításához, egyet a fizetési válasz fogadásához és egyet az IPN kezeléséhez.
 
-### One Time Payment
+### Egyszeri fizetés
 
-#### Start Payment Endpoint
+#### Fizetés indítása végpont
 
 ```typescript
 import { startPayment } from 'simplepay-js-sdk'
@@ -44,10 +46,10 @@ try {
   const response = await startPayment({
     orderRef: 'order-12',
     total: 1212,
-    currency: 'HUF', // optional, HUF | EUR | USD, defaults to HUF
+    currency: 'HUF', // opcionális, HUF | EUR | USD, alapértelmezett: HUF
     customerEmail: 'rrd@webmania.cc',
-    language: 'HU', // optional, AR | BG | CS | DE | EN | ES | FR | IT | HR | HU | PL | RO | RU | SK | TR | ZH, defaults to HU
-    method: 'CARD', // optional, CARD | WIRE, defaults to CARD
+    language: 'HU', // opcionális, AR | BG | CS | DE | EN | ES | FR | IT | HR | HU | PL | RO | RU | SK | TR | ZH, alapértelmezett: HU
+    method: 'CARD', // opcionális, CARD | WIRE, alapértelmezett: CARD
     invoice: {
       name: 'Radharadhya Dasa',
       country: 'HU',
@@ -59,88 +61,86 @@ try {
   })
   return response
 } catch (error) {
-  console.error('Payment initiation failed:', error)
+  console.error('Fizetés indítása sikertelen:', error)
   return error
 }
 ```
 
-`response.paymentUrl` will contain the Simplepay payment URL, which you can redirect the customer to.
+A `response.paymentUrl` tartalmazza a SimplePay fizetési URL-t, ahova a vásárlót átirányíthatja.
 
-#### Get Payment Response Endpoint
+#### Fizetési válasz fogadása végpont
 
-When the customer returns from the Simplepay payment page, you need to get the payment response at your `SIMPLEPAY_REDIRECT_URL`. The url will contain 2 parameters: `r` and `s`.
+Amikor a vásárló visszatér a SimplePay fizetési oldalról, a fizetési választ a `SIMPLEPAY_REDIRECT_URL` címen kell fogadni. Az URL két paramétert tartalmaz: `r` és `s`.
 
 ```typescript
 import { getPaymentResponse } from 'simplepay-js-sdk'
 
-// get "r" and "s" from the url the way you do it on your app and framework
+// az "r" és "s" paraméterek kinyerése az URL-ből az alkalmazásod és keretrendszerének megfelelően
 
 const response = getPaymentResponse(r, s)
 ```
 
-`response` will have the following properties:
+A `response` a következő tulajdonságokkal rendelkezik:
 
-- `responseCode`: `0` on success, or an error code
-- `transactionId`: the transaction id
-- `event`: the event type: `success` | `fail` | `timeout` | `cancel`
-- `merchantId`: the merchant id
-- `orderRef`: the order id
+- `responseCode`: `0` siker esetén, vagy hibakód
+- `transactionId`: a tranzakció azonosítója
+- `event`: az esemény típusa: `success` | `fail` | `timeout` | `cancel`
+- `merchantId`: a kereskedő azonosítója
+- `orderRef`: a rendelés azonosítója
 
-#### IPN Endpoint
+#### IPN végpont
 
-Simplepay will send a `POST` request to the IPN url and you should send a response back.
-At this endpoint you should
+A SimplePay `POST` kérést küld az IPN URL-re, és válaszolnunk kell rá.
+Ennél a végpontnál a következőket kell tenned:
 
-- check if the signature is valid - use `checkSignature(ipnBody, signatureHeader, SIMPLEPAY_MERCHANT_KEY_HUF)`
-- add a `receiveDate` property to the received JSON
-- calculate the new signature - use `generateSignature(responseText, SIMPLEPAY_MERCHANT_KEY_HUF)`
-- send the `response` with the new `signature`
+- ellenőrizd az aláírás érvényességét - használd a `checkSignature(ipnBody, signatureHeader, SIMPLEPAY_MERCHANT_KEY_HUF)` függvényt
+- adj hozzá egy `receiveDate` tulajdonságot a kapott JSON-hoz
+- számítsa ki az új aláírást - használd a `generateSignature(responseText, SIMPLEPAY_MERCHANT_KEY_HUF)` függvényt
+- küldd el a `response`-t az új `signature`-rel
 
+### Ismétlődő fizetés
 
-### Recurring Payment
+#### Ismétlődő fizetés indítása végpont
 
-#### Start Recurring Payment Endpoint
-
-Here you have to use the `startRecurringPayment()` function what works the same way as the `startPayment()` function. The only difference is that you have to pass 2 additional properties: `customer` and `recurring`.
+Itt a `startRecurringPayment()` függvényt kell használnod, ami ugyanúgy működik, mint a `startPayment()`. Az egyetlen különbség, hogy két további tulajdonságot kell megadni: `customer` és `recurring`.
 
 ```typescript
 try {
   const response = await startRecurringPayment({
-    // ... other preoperties
+    // ... egyéb tulajdonságok
     customer: 'Radharadhya Dasa',
     recurring: {
-      times: 3, // how many times the payment will be made, number of tokens
-      until: '2025-12-31T18:00:00+02:00', // the end date of the recurring payment - use the toISO8601DateString() helper function
-      maxAmount: 100000 // the maximum amount of the recurring payment
+      times: 3, // hányszor történik meg a fizetés, tokenek száma
+      until: '2025-12-31T18:00:00+02:00', // az ismétlődő fizetés végdátuma - használd a toISO8601DateString() segédfüggvényt
+      maxAmount: 100000 // az ismétlődő fizetés maximális összege
     }
   })
 }
 ```
 
-The response will have an additional `tokens` property, what will contain the tokens of the registered cards.
-You are responsible to save the tokens to your database, so you can use them later to make a payment.
+A válasz egy további `tokens` tulajdonsággal rendelkezik, ami tartalmazza a regisztrált kártyák tokenjeit.
+A te dolgod a tokenek mentése az adatbázisba, hogy később használhasd őket fizetéshez.
 
+#### Ismétlődő fizetési válasz fogadása végpont
 
-#### Get Recurring Payment Response Endpoint
+Használd ugyanazt a végpontot, mint az egyszeri fizetésnél.
 
-Use the same enpoint as the one time payment.
+#### IPN végpont kártyaregisztrációnál
 
-#### IPN Endpoint on card registration
+Ugyanúgy működik, mint az egyszeri fizetés `IPN` végpontja.
+A válasz ugyanazokkal a tulajdonságokkal rendelkezik, és 2 további tulajdonsággal:
 
-It works the same as the `IPN` endpoint of the one time payment.
-The response will have the same properties, and 2 additional properties:
+- `cardMask`: xxxx-xxxx-xxxx-1234 - a regisztrált kártya maszkolt száma
+- `expiry`: 2025-01-31T00:00:00+02:00 - a regisztrált kártya lejárati dátuma
 
- - `cardMask`: xxxx-xxxx-xxxx-1234 - the masked card number what is registered
- - `expiry`: 2025-01-31T00:00:00+02:00 - the expiry date of the registered card
+#### Tokenes fizetés
 
- #### Token Payment Endpoint
-
- After a card is registered you can use the tokens to make a payment without any user intercation for example by a daily `cron`
+Miután egy kártya regisztrálva van, használhatod a tokeneket fizetéshez felhasználói interakció nélkül, például napi `cron` feladattal
 
 ```typescript
 import { startTokenPayment } from 'simplepay-js-sdk'
 
-// TODO: get payment data from your database, where you saved the tokens
+// TODO: fizetési adatok lekérése az adatbázisból, ahol a tokeneket tárolod
 
 const payment = {
   token: '1234567890123456',
@@ -162,16 +162,16 @@ try {
   const response = await startTokenPayment({
     orderRef: Date.now().toString(),
     language: 'HU',
-    method: 'CARD', // must be CARD
+    method: 'CARD', // kötelezően CARD
     ...payment,
   })
   return response
 } catch (error) {
-  console.error('Token payment initiation failed:', error)
+  console.error('Token fizetés indítása sikertelen:', error)
   return error
 }
 ```
 
-## License
+## Licenc
 
 MIT
