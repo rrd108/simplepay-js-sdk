@@ -1,5 +1,7 @@
 # SimplePay JS SDK
 
+[English README](README-ENG.md)
+
 Egy pehelysúlyú segédprogram a magyarországi SimplePay fizetések integrálásához Node.js alkalmazásokban.
 
 ![SimplePay Logo](simplepay_logo.jpg)
