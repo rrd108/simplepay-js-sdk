@@ -174,6 +174,28 @@ try {
 }
 ```
 
+#### Kártya törlése
+
+A fizető ügyfelek számára lehetővé kell tenni, hogy a honlapodon belépve törölni tudja a regisztrált kártyáját.
+Ehhez használd a `cancelCard` függvényt. `cardId`-ként a kártya regisztrációs tranzakció SimplePay azonosítóját kell megadnod.
+
+```typescript
+import { cancelCard } from 'simplepay-js-sdk'
+
+try {
+  const response = await cancelCard(cardId)
+  
+  if (response.status == 'DISABLED') {
+    // A kártya sikeresen törölve
+    // TODO: a fel nem használt tokenek és a kártya törlése az adatbázisból
+  }
+  return response
+} catch (error) {
+  console.error('Kártya törlése sikertelen:', error)
+  return error
+}
+```
+
 ## Licenc
 
 MIT

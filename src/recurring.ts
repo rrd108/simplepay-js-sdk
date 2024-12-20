@@ -1,6 +1,6 @@
 import crypto from 'crypto'
-import { SimplePayRecurringRequestBody, RecurringPaymentData, TokenPaymentData, SimplePayTokenRequestBody} from './types'
-import { getSimplePayConfig, simplepayLogger, toISO8601DateString, makeSimplePayTokenRequest, makeSimplePayRecurringRequest} from './utils'
+import { SimplePayRecurringRequestBody, RecurringPaymentData, TokenPaymentData, SimplePayTokenRequestBody, SimplePayCardCancelRequestBody} from './types'
+import { getSimplePayConfig, simplepayLogger, toISO8601DateString, makeSimplePayTokenRequest, makeSimplePayRecurringRequest, makeSimplePayRequest, makeSimplePayCardCancelRequest} from './utils'
 
 const INTERVAL_IN_MONTHS = 6
 const DEFAULT_UNTIL = new Date(Date.now() + INTERVAL_IN_MONTHS * 30 * 24 * 60 * 60 * 1000)
@@ -10,8 +10,8 @@ const DEFAULT_TIMES = 3
 const startRecurringPayment = async (paymentData: RecurringPaymentData) => {
     simplepayLogger({ function: 'SimplePay/startRecurringPayment', paymentData })
     const currency = paymentData.currency || 'HUF'
-    const { MERCHANT_KEY, MERCHANT_ID, API_URL, SDK_VERSION } = getSimplePayConfig(currency)
-    simplepayLogger({ function: 'SimplePay/startRecurringPayment', MERCHANT_KEY, MERCHANT_ID, API_URL })
+    const { MERCHANT_KEY, MERCHANT_ID, API_URL_PAYMENT, SDK_VERSION } = getSimplePayConfig(currency)
+    simplepayLogger({ function: 'SimplePay/startRecurringPayment', MERCHANT_KEY, MERCHANT_ID, API_URL_PAYMENT })
 
     if (!MERCHANT_KEY || !MERCHANT_ID) {
         throw new Error(`Missing SimplePay configuration for ${currency}`)
@@ -39,7 +39,7 @@ const startRecurringPayment = async (paymentData: RecurringPaymentData) => {
         invoice: paymentData.invoice,
     }
 
-   return makeSimplePayRecurringRequest(API_URL, requestBody, MERCHANT_KEY)
+   return makeSimplePayRecurringRequest(API_URL_PAYMENT, requestBody, MERCHANT_KEY)
 }
 
 const startTokenPayment = async (paymentData: TokenPaymentData) => {
@@ -74,4 +74,21 @@ const startTokenPayment = async (paymentData: TokenPaymentData) => {
   return makeSimplePayTokenRequest(API_URL_RECURRING, requestBody, MERCHANT_KEY)
 }
 
-export { startRecurringPayment, startTokenPayment }
+const cardCancel = async (cardId: string) => {
+    simplepayLogger({ function: 'SimplePay/cardCancel', cardId })
+    const {API_URL_CARD_CANCEL, MERCHANT_KEY, MERCHANT_ID, SDK_VERSION} = getSimplePayConfig('HUF')
+
+    if (!MERCHANT_KEY || !MERCHANT_ID) {
+        throw new Error(`Missing SimplePay configuration for HUF`)
+    }
+
+    const requestBody: SimplePayCardCancelRequestBody = {
+        salt: crypto.randomBytes(16).toString('hex'),
+        cardId,
+        merchant: MERCHANT_ID,
+        sdkVersion: SDK_VERSION,
+    }
+    return makeSimplePayCardCancelRequest(API_URL_CARD_CANCEL, requestBody, MERCHANT_KEY)
+}
+
+export { startRecurringPayment, startTokenPayment , cardCancel}

@@ -82,6 +82,13 @@ export interface SimplePayTokenRequestBody extends SimplePayRequestBody {
     type: 'MIT' // Merchant Initiated Transaction
 }
 
+export interface SimplePayCardCancelRequestBody {
+    salt: string
+    cardId: string
+    merchant: string
+    sdkVersion: string
+}
+
 export interface SimplePayResponse {
     salt: string
     merchant: string
@@ -99,6 +106,14 @@ export interface SimplePayRecurringResponse extends SimplePayResponse {
 }
 
 export interface SimplePayTokenResponse extends Omit<SimplePayResponse, 'paymentUrl' | 'timeout'> { }
+
+export interface SimplePayCardCancelResponse {
+    salt: string
+    merchant: string
+    cardId: string
+    status: 'DISABLED'
+    expiry: string
+}
 
 export type SimplePayEvents = 'SUCCESS' | 'FAIL' | 'TIMEOUT' | 'CANCEL'
 

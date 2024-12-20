@@ -176,6 +176,28 @@ try {
 }
 ```
 
+#### Card Cancelation
+
+Paying customers should be able to delete their registered card on the website.
+To do this, use the `cancelCard` function. Use SimplePay transaction id of the card registration transaction as `cardId`.
+
+```typescript
+import { cancelCard } from 'simplepay-js-sdk'
+
+try {
+  const response = await cancelCard(cardId)
+  
+  if (response.status == 'DISABLED') {
+    // The card has been successfully deleted
+    // TODO: delete the unused tokens and the card from the database
+  }
+  return response
+} catch (error) {
+  console.error('Card deletion failed:', error)
+  return error
+}
+```
+
 ## License
 
 MIT
