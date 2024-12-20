@@ -23,7 +23,7 @@ export const getSimplePayConfig = (currency: Currency) => {
     const API_URL = process.env.SIMPLEPAY_PRODUCTION === 'true' ? SIMPLEPAY_API_URL : SIMPLEPAY_SANDBOX_URL
     const API_URL_PAYMENT = API_URL + '/start'
     const API_URL_RECURRING = API_URL + '/dorecurring'
-    const API_URL_CARD_CANCEL = API_URL + '/cancelcard'
+    const API_URL_CARD_CANCEL = API_URL + '/cardcancel'
     return {
         MERCHANT_KEY,
         MERCHANT_ID,
