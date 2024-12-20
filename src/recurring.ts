@@ -1,6 +1,6 @@
 import crypto from 'crypto'
-import { SimplePayRecurringRequestBody, RecurringPaymentData, TokenPaymentData, SimplePayTokenRequestBody, SimplePayCardCancelRequestBody} from './types'
-import { getSimplePayConfig, simplepayLogger, toISO8601DateString, makeSimplePayTokenRequest, makeSimplePayRecurringRequest, makeSimplePayRequest, makeSimplePayCardCancelRequest} from './utils'
+import { SimplePayRecurringRequestBody, RecurringPaymentData, TokenPaymentData, SimplePayTokenRequestBody, SimplePayCancelCardRequestBody} from './types'
+import { getSimplePayConfig, simplepayLogger, toISO8601DateString, makeSimplePayTokenRequest, makeSimplePayRecurringRequest, makeSimplePayRequest, makeSimplePayCancelCardRequest} from './utils'
 
 const INTERVAL_IN_MONTHS = 6
 const DEFAULT_UNTIL = new Date(Date.now() + INTERVAL_IN_MONTHS * 30 * 24 * 60 * 60 * 1000)
@@ -74,21 +74,21 @@ const startTokenPayment = async (paymentData: TokenPaymentData) => {
   return makeSimplePayTokenRequest(API_URL_RECURRING, requestBody, MERCHANT_KEY)
 }
 
-const cardCancel = async (cardId: string) => {
-    simplepayLogger({ function: 'SimplePay/cardCancel', cardId })
+const cancelCard = async (cardId: string) => {
+    simplepayLogger({ function: 'SimplePay/cancelCard', cardId })
     const {API_URL_CARD_CANCEL, MERCHANT_KEY, MERCHANT_ID, SDK_VERSION} = getSimplePayConfig('HUF')
 
     if (!MERCHANT_KEY || !MERCHANT_ID) {
         throw new Error(`Missing SimplePay configuration for HUF`)
     }
 
-    const requestBody: SimplePayCardCancelRequestBody = {
+    const requestBody: SimplePayCancelCardRequestBody = {
         salt: crypto.randomBytes(16).toString('hex'),
         cardId,
         merchant: MERCHANT_ID,
         sdkVersion: SDK_VERSION,
     }
-    return makeSimplePayCardCancelRequest(API_URL_CARD_CANCEL, requestBody, MERCHANT_KEY)
+    return makeSimplePayCancelCardRequest(API_URL_CARD_CANCEL, requestBody, MERCHANT_KEY)
 }
 
-export { startRecurringPayment, startTokenPayment , cardCancel}
+export { startRecurringPayment, startTokenPayment , cancelCard}

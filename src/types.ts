@@ -82,7 +82,7 @@ export interface SimplePayTokenRequestBody extends SimplePayRequestBody {
     type: 'MIT' // Merchant Initiated Transaction
 }
 
-export interface SimplePayCardCancelRequestBody {
+export interface SimplePayCancelCardRequestBody {
     salt: string
     cardId: string
     merchant: string
@@ -107,7 +107,7 @@ export interface SimplePayRecurringResponse extends SimplePayResponse {
 
 export interface SimplePayTokenResponse extends Omit<SimplePayResponse, 'paymentUrl' | 'timeout'> { }
 
-export interface SimplePayCardCancelResponse {
+export interface SimplePayCancelCardResponse {
     salt: string
     merchant: string
     cardId: string

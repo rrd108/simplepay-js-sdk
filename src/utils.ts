@@ -1,5 +1,5 @@
 import crypto from 'crypto'
-import { CURRENCIES, Currency, ISO8601DateString, SimplePayAPIResult, SimplePayCardCancelRequestBody, SimplePayCardCancelResponse, SimplePayRecurringRequestBody, SimplePayRecurringResponse, SimplePayRequestBody, SimplePayResponse, SimplePayResult, SimplePayTokenRequestBody, SimplePayTokenResponse } from "./types"
+import { CURRENCIES, Currency, ISO8601DateString, SimplePayAPIResult, SimplePayCancelCardRequestBody, SimplePayCancelCardResponse, SimplePayRecurringRequestBody, SimplePayRecurringResponse, SimplePayRequestBody, SimplePayResponse, SimplePayResult, SimplePayTokenRequestBody, SimplePayTokenResponse } from "./types"
 
 export const simplepayLogger = (...args: any[]) => {
     if (process.env.SIMPLEPAY_LOGGER !== 'true') {
@@ -16,7 +16,7 @@ export const getSimplePayConfig = (currency: Currency) => {
 
     const SIMPLEPAY_API_URL = 'https://secure.simplepay.hu/payment/v2'
     const SIMPLEPAY_SANDBOX_URL = 'https://sandbox.simplepay.hu/payment/v2'
-    const SDK_VERSION = 'SimplePayV2.1_Rrd_0.8.0'
+    const SDK_VERSION = 'SimplePayV2.1_Rrd_0.8.1'
     const MERCHANT_KEY = process.env[`SIMPLEPAY_MERCHANT_KEY_${currency}`]
     const MERCHANT_ID = process.env[`SIMPLEPAY_MERCHANT_ID_${currency}`]
 
@@ -72,11 +72,11 @@ export const makeSimplePayTokenRequest = async (apiUrl: string, requestBody: Sim
     return makeRequest(apiUrl, requestBody, merchantKey, 'token') as Promise<SimplePayTokenResponse>
 }
 
-export const makeSimplePayCardCancelRequest = async (apiUrl: string, requestBody: SimplePayCardCancelRequestBody, merchantKey: string) => {
-    return makeRequest(apiUrl, requestBody, merchantKey, 'cardCancel') as Promise<SimplePayCardCancelResponse>
+export const makeSimplePayCancelCardRequest = async (apiUrl: string, requestBody: SimplePayCancelCardRequestBody, merchantKey: string) => {
+    return makeRequest(apiUrl, requestBody, merchantKey, 'cancelCard') as Promise<SimplePayCancelCardResponse>
 }
 
-const makeRequest = async (apiUrl: string, requestBody: SimplePayRequestBody | SimplePayRecurringRequestBody | SimplePayTokenRequestBody | SimplePayCardCancelRequestBody, merchantKey: string, type: 'oneTime' | 'recurring' | 'token' | 'cardCancel') => {
+const makeRequest = async (apiUrl: string, requestBody: SimplePayRequestBody | SimplePayRecurringRequestBody | SimplePayTokenRequestBody | SimplePayCancelCardRequestBody, merchantKey: string, type: 'oneTime' | 'recurring' | 'token' | 'cancelCard') => {
     const bodyString = prepareRequestBody(requestBody)
     const signature = generateSignature(bodyString, merchantKey)
     simplepayLogger({ function: `SimplePay/makeRequest/${type}`, bodyString, signature })
