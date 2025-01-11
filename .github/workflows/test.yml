@@ -1,0 +1,39 @@
+name: Run Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [20.x, 22.x]
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
+          
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+        
+      - name: Run tests
+        run: yarn test
+        env:
+          CI: true
+          SIMPLEPAY_MERCHANT_ID_HUF: testId
+          SIMPLEPAY_MERCHANT_KEY_HUF: testKey
+          SIMPLEPAY_MERCHANT_ID_EUR: merchantEuroId
+          SIMPLEPAY_MERCHANT_KEY_EUR: secretEuroKey 
