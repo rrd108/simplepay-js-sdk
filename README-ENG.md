@@ -31,7 +31,7 @@ Set the following environment variables in your `.env` file:
 - `SIMPLEPAY_MERCHANT_KEY_HUF` Your Simplepay secret merchant key. Set `SIMPLEPAY_MERCHANT_KEY_EUR` and `SIMPLEPAY_MERCHANT_KEY_USD` for accepting EUR and USD payments.
 - `SIMPLEPAY_MERCHANT_ID_HUF` Your Simplepay merchant id. Set `SIMPLEPAY_MERCHANT_ID_EUR` and `SIMPLEPAY_MERCHANT_ID_USD` for accepting EUR and USD payments.
 - `SIMPLEPAY_PRODUCTION` If it set to `true`, it will use production environment, otherwise it will use sandbox environment.
-- `SIMPLEPAY_REDIRECT_URL` The URL of your site, where the customer will be redirected after the payment. Can also be provided when starting a payment.
+- `SIMPLEPAY_REDIRECT_URL` The URL of your site, where the customer will be redirected after the payment. Can also be provided when starting a payment so you can define different redirect urls for different payments.
 
 ## Usage
 

@@ -31,7 +31,7 @@ pnpm add simplepay-js-sdk
 - `SIMPLEPAY_MERCHANT_KEY_HUF` A te SimplePay titkos kereskedői kulcsod. Állítsd be a `SIMPLEPAY_MERCHANT_KEY_EUR` és `SIMPLEPAY_MERCHANT_KEY_USD` értékeket EUR és USD fizetések elfogadásához.
 - `SIMPLEPAY_MERCHANT_ID_HUF` A te SimplePay kereskedői azonosítód. Állítsd be a `SIMPLEPAY_MERCHANT_ID_EUR` és `SIMPLEPAY_MERCHANT_ID_USD` értékeket EUR és USD fizetések elfogadásához.
 - `SIMPLEPAY_PRODUCTION` Ha `true`-ra van állítva, éles környezetet használ, egyébként teszt környezetet.
-- `SIMPLEPAY_REDIRECT_URL` A te weboldalad URL-je, ahova a vásárló átirányításra kerül a fizetés után. Ez a fizetés indításakor is megadható.
+- `SIMPLEPAY_REDIRECT_URL` A te weboldalad URL-je, ahova a vásárló átirányításra kerül a fizetés után. Ez a fizetés indításakor is megadható, így különböző redirect url-eket definiálhatsz különböző fizetésekhez.
 
 ## Használat
 
