@@ -1,8 +1,8 @@
 import crypto from 'crypto'
-import { PaymentData, SimplePayRequestBody } from './types'
+import { PaymentConfig, PaymentData, SimplePayRequestBody } from './types'
 import { simplepayLogger, getSimplePayConfig, toISO8601DateString, makeSimplePayRequest } from './utils'
 
-const startPayment = async (paymentData: PaymentData) => {
+const startPayment = async (paymentData: PaymentData, config: PaymentConfig = {}) => {
     simplepayLogger({ function: 'SimplePay/startPayment', paymentData })
     const currency = paymentData.currency || 'HUF'
     const { MERCHANT_KEY, MERCHANT_ID, API_URL_PAYMENT, SDK_VERSION } = getSimplePayConfig(currency)
@@ -23,7 +23,7 @@ const startPayment = async (paymentData: PaymentData) => {
         methods: [paymentData.method || 'CARD'],
         total: String(paymentData.total),
         timeout: toISO8601DateString(new Date(Date.now() + 30 * 60 * 1000)),
-        url: process.env.SIMPLEPAY_REDIRECT_URL || 'http://url.to.redirect',
+        url: config.redirectUrl || process.env.SIMPLEPAY_REDIRECT_URL || 'http://url.to.redirect',
         invoice: paymentData.invoice,
     }
 

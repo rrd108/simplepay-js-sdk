@@ -42,6 +42,10 @@ export interface PaymentData {
     }
 }
 
+export interface PaymentConfig {
+    redirectUrl?: string
+}
+
 export type ISO8601DateString = string
 export interface Recurring {
     times: number,
