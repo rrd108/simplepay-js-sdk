@@ -6,6 +6,8 @@ import { generateSignature, checkSignature, getPaymentResponse } from './utils'
 const setEnv = () => {
     process.env.SIMPLEPAY_MERCHANT_ID_HUF = 'testId'
     process.env.SIMPLEPAY_MERCHANT_KEY_HUF = 'testKey'
+    process.env.SIMPLEPAY_MERCHANT_ID_HUF_SZEP = 'testIdSzep'
+    process.env.SIMPLEPAY_MERCHANT_KEY_HUF_SZEP = 'testKeySzep'
     process.env.SIMPLEPAY_MERCHANT_ID_EUR = 'merchantEuroId'
     process.env.SIMPLEPAY_MERCHANT_KEY_EUR = 'secretEuroKey'
 }
@@ -15,6 +17,8 @@ describe('SimplePay Basic Tests', () => {
         // Clear all environment variables before each test
         delete process.env.SIMPLEPAY_MERCHANT_ID_HUF
         delete process.env.SIMPLEPAY_MERCHANT_KEY_HUF
+        delete process.env.SIMPLEPAY_MERCHANT_ID_HUF_SZEP
+        delete process.env.SIMPLEPAY_MERCHANT_KEY_HUF_SZEP
         delete process.env.SIMPLEPAY_MERCHANT_ID_EUR
         delete process.env.SIMPLEPAY_MERCHANT_KEY_EUR
     })

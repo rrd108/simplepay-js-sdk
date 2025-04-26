@@ -35,5 +35,6 @@ jobs:
           CI: true
           SIMPLEPAY_MERCHANT_ID_HUF: testId
           SIMPLEPAY_MERCHANT_KEY_HUF: testKey
+          SIMPLEPAY_MERCHANT_KEY_HUF_SZEP: testKeySzep
           SIMPLEPAY_MERCHANT_ID_EUR: merchantEuroId
           SIMPLEPAY_MERCHANT_KEY_EUR: secretEuroKey 

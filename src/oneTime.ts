@@ -1,5 +1,5 @@
 import crypto from 'crypto'
-import { PaymentConfig, PaymentData, SimplePayRequestBody } from './types'
+import { Currency, PaymentConfig, PaymentData, SimplePayRequestBody } from './types'
 import { simplepayLogger, getSimplePayConfig, toISO8601DateString, makeSimplePayRequest } from './utils'
 
 const startPayment = async (paymentData: PaymentData, config: PaymentConfig = {}) => {
@@ -16,7 +16,7 @@ const startPayment = async (paymentData: PaymentData, config: PaymentConfig = {}
         salt: crypto.randomBytes(16).toString('hex'),
         merchant: MERCHANT_ID,
         orderRef: paymentData.orderRef,
-        currency,
+        currency: currency.replace('_SZEP', '') as Currency,
         customerEmail: paymentData.customerEmail,
         language: paymentData.language || 'HU',
         sdkVersion: SDK_VERSION,
