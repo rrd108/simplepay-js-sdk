@@ -72,6 +72,21 @@ describe('SimplePay Utils Tests', () => {
             const result = checkSignature(JSON.stringify(response).replace(/\//g, '\\/'), expectedSignature, merchantKey)
             expect(result).toBeTruthy()
         })
+        
+        it('should generate correct signature for the SZÉP payment response', () => {
+            const merchantKey = 'SZEP_KEY_SECRET'
+            const response = {
+                r:0, 
+                t:505070183, 
+                e:"SUCCESS", 
+                m:"SZEP114606", 
+                o:"1745669549825"
+            }
+
+            const expectedSignature = '6stvxYnjA+UUmcmsQvA4FjvgGx6MbtPleKIQVTUzA5vu+uUOyl15o9LSnFn/9WtD'
+            const result = checkSignature(JSON.stringify(response).replace(/\//g, '\\/'), expectedSignature, merchantKey)
+            expect(result).toBeTruthy()
+        })
 
         it('should return false for invalid signature', () => {
             const merchantKey = 'testKey'
@@ -122,7 +137,7 @@ describe('SimplePay Utils Tests', () => {
             expect(currency).toBe('HUF')
             
             const currencySzep = getCurrencyFromMerchantId('testIdSzep')
-            expect(currencySzep).toBe('HUF')
+            expect(currencySzep).toBe('HUF_SZEP')
         })
     })
 })
