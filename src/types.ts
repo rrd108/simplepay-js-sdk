@@ -1,6 +1,6 @@
 export type PaymentMethod = 'CARD' | 'WIRE'
 
-export const CURRENCIES = ['HUF', 'EUR', 'USD'] as const
+export const CURRENCIES = ['HUF', 'HUF_SZEP', 'EUR', 'USD'] as const
 export type Currency = typeof CURRENCIES[number]
 
 export const LANGUAGES = [

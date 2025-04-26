@@ -28,8 +28,8 @@ pnpm add simplepay-js-sdk
 Set the following environment variables in your `.env` file:
 
 - `SIMPLEPAY_LOGGER` If it set to `true`, it will log varibles - useful only for debugging.
-- `SIMPLEPAY_MERCHANT_KEY_HUF` Your Simplepay secret merchant key. Set `SIMPLEPAY_MERCHANT_KEY_EUR` and `SIMPLEPAY_MERCHANT_KEY_USD` for accepting EUR and USD payments.
-- `SIMPLEPAY_MERCHANT_ID_HUF` Your Simplepay merchant id. Set `SIMPLEPAY_MERCHANT_ID_EUR` and `SIMPLEPAY_MERCHANT_ID_USD` for accepting EUR and USD payments.
+- `SIMPLEPAY_MERCHANT_KEY_HUF` Your Simplepay secret merchant key. Set `SIMPLEPAY_MERCHANT_KEY_HUF_SZEP` for accepting SZÉP kártyás payments. Set `SIMPLEPAY_MERCHANT_KEY_EUR` and `SIMPLEPAY_MERCHANT_KEY_USD` for accepting EUR and USD payments.
+- `SIMPLEPAY_MERCHANT_ID_HUF` Your Simplepay merchant id. Set `SIMPLEPAY_MERCHANT_ID_HUF_SZEP` for accepting SZÉP kártyás payments. Set `SIMPLEPAY_MERCHANT_ID_EUR` and `SIMPLEPAY_MERCHANT_ID_USD` for accepting EUR and USD payments.
 - `SIMPLEPAY_PRODUCTION` If it set to `true`, it will use production environment, otherwise it will use sandbox environment.
 - `SIMPLEPAY_REDIRECT_URL` The URL of your site, where the customer will be redirected after the payment. Can also be provided when starting a payment so you can define different redirect urls for different payments.
 
@@ -48,7 +48,7 @@ try {
   const response = await startPayment({
     orderRef: 'order-12',
     total: 1212,
-    currency: 'HUF', // optional, HUF | EUR | USD, defaults to HUF
+    currency: 'HUF', // optional, HUF | HUF_SZEP | EUR | USD, defaults to HUF
     customerEmail: 'rrd@webmania.cc',
     language: 'HU', // optional, AR | BG | CS | DE | EN | ES | FR | IT | HR | HU | PL | RO | RU | SK | TR | ZH, defaults to HU
     method: 'CARD', // optional, CARD | WIRE, defaults to CARD

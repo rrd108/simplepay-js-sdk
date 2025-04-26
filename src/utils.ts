@@ -54,10 +54,13 @@ export const getCurrencyFromMerchantId = (merchantId: string) => {
         .find(([key, value]) =>
             key.startsWith('SIMPLEPAY_MERCHANT_ID_') && value === merchantId
         )?.[0]?.replace('SIMPLEPAY_MERCHANT_ID_', '') as Currency
+
     if (!currency) {
         throw new Error(`Merchant id not found in the environment: ${merchantId}`)
     }
-    return currency
+
+    // if currency ends with _SZEP, remove it
+    return currency.replace('_SZEP', '')
 }
 
 export const makeSimplePayRequest = async (apiUrl: string, requestBody: SimplePayRequestBody, merchantKey: string) => {

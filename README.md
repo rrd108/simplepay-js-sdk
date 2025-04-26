@@ -28,8 +28,8 @@ pnpm add simplepay-js-sdk
 Állítsd be a következő környezeti változókat a `.env` fájlban:
 
 - `SIMPLEPAY_LOGGER` Ha `true`-ra van állítva, naplózza a változókat - csak hibakereséshez hasznos.
-- `SIMPLEPAY_MERCHANT_KEY_HUF` A te SimplePay titkos kereskedői kulcsod. Állítsd be a `SIMPLEPAY_MERCHANT_KEY_EUR` és `SIMPLEPAY_MERCHANT_KEY_USD` értékeket EUR és USD fizetések elfogadásához.
-- `SIMPLEPAY_MERCHANT_ID_HUF` A te SimplePay kereskedői azonosítód. Állítsd be a `SIMPLEPAY_MERCHANT_ID_EUR` és `SIMPLEPAY_MERCHANT_ID_USD` értékeket EUR és USD fizetések elfogadásához.
+- `SIMPLEPAY_MERCHANT_KEY_HUF` A te SimplePay titkos kereskedői kulcsod. Állítsd be a `SIMPLEPAY_MERCHANT_KEY_HUF_SZEP` értéket SZÉP kártyás fizetésekhez. Állítsd be a `SIMPLEPAY_MERCHANT_KEY_EUR` és `SIMPLEPAY_MERCHANT_KEY_USD` értékeket EUR és USD fizetések elfogadásához.
+- `SIMPLEPAY_MERCHANT_ID_HUF` A te SimplePay kereskedői azonosítód. Állítsd be a `SIMPLEPAY_MERCHANT_ID_HUF_SZEP` értéket SZÉP kártyás fizetésekhez. Állítsd be a `SIMPLEPAY_MERCHANT_ID_EUR` és `SIMPLEPAY_MERCHANT_ID_USD` értékeket EUR és USD fizetések elfogadásához.
 - `SIMPLEPAY_PRODUCTION` Ha `true`-ra van állítva, éles környezetet használ, egyébként teszt környezetet.
 - `SIMPLEPAY_REDIRECT_URL` A te weboldalad URL-je, ahova a vásárló átirányításra kerül a fizetés után. Ez a fizetés indításakor is megadható, így különböző redirect url-eket definiálhatsz különböző fizetésekhez.
 
@@ -48,7 +48,7 @@ try {
   const response = await startPayment({
     orderRef: 'order-12',
     total: 1212,
-    currency: 'HUF', // opcionális, HUF | EUR | USD, alapértelmezett: HUF
+    currency: 'HUF', // opcionális, HUF | HUF_SZEP | EUR | USD, alapértelmezett: HUF
     customerEmail: 'rrd@webmania.cc',
     language: 'HU', // opcionális, AR | BG | CS | DE | EN | ES | FR | IT | HR | HU | PL | RO | RU | SK | TR | ZH, alapértelmezett: HU
     method: 'CARD', // opcionális, CARD | WIRE, alapértelmezett: CARD

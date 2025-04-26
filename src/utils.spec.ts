@@ -5,6 +5,8 @@ import { checkSignature, generateSignature, getCurrencyFromMerchantId, getSimple
 const setEnv = () => {
     process.env.SIMPLEPAY_MERCHANT_ID_HUF = 'testId'
     process.env.SIMPLEPAY_MERCHANT_KEY_HUF = 'testKey'
+    process.env.SIMPLEPAY_MERCHANT_ID_HUF_SZEP = 'testIdSzep'
+    process.env.SIMPLEPAY_MERCHANT_KEY_HUF_SZEP = 'testKeySzep'
     process.env.SIMPLEPAY_MERCHANT_ID_EUR = 'merchantEuroId'
     process.env.SIMPLEPAY_MERCHANT_KEY_EUR = 'secretEuroKey'
 }
@@ -19,6 +21,8 @@ describe('SimplePay Utils Tests', () => {
         // Clear all environment variables before each test
         delete process.env.SIMPLEPAY_MERCHANT_ID_HUF
         delete process.env.SIMPLEPAY_MERCHANT_KEY_HUF
+        delete process.env.SIMPLEPAY_MERCHANT_ID_HUF_SZEP
+        delete process.env.SIMPLEPAY_MERCHANT_KEY_HUF_SZEP
         delete process.env.SIMPLEPAY_MERCHANT_ID_EUR
         delete process.env.SIMPLEPAY_MERCHANT_KEY_EUR
     })
@@ -90,6 +94,13 @@ describe('SimplePay Utils Tests', () => {
             expect(config.MERCHANT_ID).toBe('testId')
             expect(config.MERCHANT_KEY).toBe('testKey')
         })
+        
+        it('should return correct config for HUF_SZEP', () => {
+            setEnv()
+            const config = getSimplePayConfig('HUF_SZEP')
+            expect(config.MERCHANT_ID).toBe('testIdSzep')
+            expect(config.MERCHANT_KEY).toBe('testKeySzep')
+        })
 
         it('should throw error for unsupported currency', () => {
             expect(() => getSimplePayConfig('GBP' as Currency)).toThrow('Unsupported currency: GBP')
@@ -109,6 +120,9 @@ describe('SimplePay Utils Tests', () => {
             setEnv()
             const currency = getCurrencyFromMerchantId('testId')
             expect(currency).toBe('HUF')
+            
+            const currencySzep = getCurrencyFromMerchantId('testIdSzep')
+            expect(currencySzep).toBe('HUF')
         })
     })
 })

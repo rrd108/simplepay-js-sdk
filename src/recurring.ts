@@ -1,5 +1,5 @@
 import crypto from 'crypto'
-import { SimplePayRecurringRequestBody, RecurringPaymentData, TokenPaymentData, SimplePayTokenRequestBody, SimplePayCancelCardRequestBody} from './types'
+import { SimplePayRecurringRequestBody, RecurringPaymentData, TokenPaymentData, SimplePayTokenRequestBody, SimplePayCancelCardRequestBody, Currency} from './types'
 import { getSimplePayConfig, simplepayLogger, toISO8601DateString, makeSimplePayTokenRequest, makeSimplePayRecurringRequest, makeSimplePayRequest, makeSimplePayCancelCardRequest} from './utils'
 
 const INTERVAL_IN_MONTHS = 6
@@ -21,7 +21,7 @@ const startRecurringPayment = async (paymentData: RecurringPaymentData) => {
         salt: crypto.randomBytes(16).toString('hex'),
         merchant: MERCHANT_ID,
         orderRef: paymentData.orderRef,
-        currency,
+        currency: currency.replace('_SZEP', '') as Currency,
         customer: paymentData.customer,
         customerEmail: paymentData.customerEmail,
         language: paymentData.language || 'HU',
@@ -56,7 +56,7 @@ const startTokenPayment = async (paymentData: TokenPaymentData) => {
         salt: crypto.randomBytes(16).toString('hex'),
         merchant: MERCHANT_ID,
         orderRef: paymentData.orderRef,
-        currency,
+        currency: currency.replace('_SZEP', '') as Currency,
         customer: paymentData.customer,
         customerEmail: paymentData.customerEmail,
         language: paymentData.language || 'HU',
