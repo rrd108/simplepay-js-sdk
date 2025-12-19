@@ -29,13 +29,13 @@ pnpm add simplepay-js-sdk
 
 - `SIMPLEPAY_LOGGER` Ha `true`-ra van állítva, naplózza a változókat - csak hibakereséshez hasznos.
 - `SIMPLEPAY_MERCHANT_KEY_HUF` A te SimplePay titkos kereskedői kulcsod. Állítsd be a `SIMPLEPAY_MERCHANT_KEY_HUF_SZEP` értéket SZÉP kártyás fizetésekhez. Állítsd be a `SIMPLEPAY_MERCHANT_KEY_EUR` és `SIMPLEPAY_MERCHANT_KEY_USD` értékeket EUR és USD fizetések elfogadásához.
-- `SIMPLEPAY_MERCHANT_ID_HUF` A te SimplePay kereskedői azonosítód. Állítsd be a `SIMPLEPAY_MERCHANT_ID_HUF_SZEP` értéket SZÉP kártyás fizetésekhez. Állítsd be a `SIMPLEPAY_MERCHANT_ID_EUR` és `SIMPLEPAY_MERCHANT_ID_USD` értékeket EUR és USD fizetések elfogadásához.
+- `SIMPLEPAY_MERCHANT_ID_HUF` A SimplePay kereskedői azonosítód. Állítsd be a `SIMPLEPAY_MERCHANT_ID_HUF_SZEP` értéket SZÉP kártyás fizetésekhez. Állítsd be a `SIMPLEPAY_MERCHANT_ID_EUR` és `SIMPLEPAY_MERCHANT_ID_USD` értékeket EUR és USD fizetések elfogadásához.
 - `SIMPLEPAY_PRODUCTION` Ha `true`-ra van állítva, éles környezetet használ, egyébként teszt környezetet.
-- `SIMPLEPAY_REDIRECT_URL` A te weboldalad URL-je, ahova a vásárló átirányításra kerül a fizetés után. Ez a fizetés indításakor is megadható, így különböző redirect url-eket definiálhatsz különböző fizetésekhez.
+- `SIMPLEPAY_REDIRECT_URL` A weboldalad URL-je, ahova a vásárló átirányításra kerül a fizetés után. Ez a fizetés indításakor is megadható, így különböző redirect url-eket definiálhatsz különböző fizetésekhez.
 
 ## Használat
 
-Három végpontot kell létrehoznia: egyet a fizetés indításához, egyet a fizetési válasz fogadásához és egyet az IPN kezeléséhez.
+Három végpontot kell létrehoznod: egyet a fizetés indításához, egyet a fizetési válasz fogadásához és egyet az IPN kezeléséhez.
 
 ### Egyszeri fizetés
 
@@ -70,7 +70,7 @@ try {
 }
 ```
 
-A `response.paymentUrl` tartalmazza a SimplePay fizetési URL-t, ahova a vásárlót átirányíthatja.
+A `response.paymentUrl` tartalmazza a SimplePay fizetési URL-t, ahova a vásárlót át kell irányítani.
 
 #### Fizetési válasz fogadása végpont
 
@@ -99,7 +99,7 @@ Ennél a végpontnál a következőket kell tenned:
 
 - ellenőrizd az aláírás érvényességét - használd a `checkSignature(ipnBody, signatureHeader, SIMPLEPAY_MERCHANT_KEY_HUF)` függvényt
 - adj hozzá egy `receiveDate` tulajdonságot a kapott JSON-hoz
-- számítsa ki az új aláírást - használd a `generateSignature(responseText, SIMPLEPAY_MERCHANT_KEY_HUF)` függvényt
+- számítsd ki az új aláírást - használd a `generateSignature(responseText, SIMPLEPAY_MERCHANT_KEY_HUF)` függvényt
 - küldd el a `response`-t az új `signature`-rel
 
 ### Ismétlődő fizetés
