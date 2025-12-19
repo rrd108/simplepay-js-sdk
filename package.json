@@ -37,7 +37,7 @@
   "author": "Radharadhya Dasa",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^22.0.0",
+    "@types/node": "^24.0.0",
     "typescript": "~5.9.0",
     "vite": "^7.0.0",
     "vite-plugin-dts": "^4.3.0",
