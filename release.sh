@@ -1,9 +1,6 @@
 #!/bin/bash
 
-echo "--- Debug ---"
-echo "Script arguments: $@"
-echo "First argument: $1"
-echo "--- End Debug ---"
+"
 
 RED='\e[1;41m'
 GREEN='\e[1;42m'
