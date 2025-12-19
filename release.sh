@@ -1,5 +1,10 @@
 #!/bin/bash
 
+echo "--- Debug ---"
+echo "Script arguments: $@"
+echo "First argument: $1"
+echo "--- End Debug ---"
+
 RED='\e[1;41m'
 GREEN='\e[1;42m'
 NC='\033[0m' # No Color
@@ -17,18 +22,25 @@ if [ "$1" != "patch" ] && [ "$1" != "minor" ]; then
   exit 1
 fi
 
-echo $'\n' "Running Frontend Tests" $'\n'
+echo $'\n' "Running Frontend Tests" $'
+' # Use $'...' for ANSI-escaped strings
 yarn test
 if [ $? -eq 0 ]; then
-  echo -e $'\n' "${GREEN} \u2714 All frontend tests passed ${NC}" $'\n'
+  echo -e $'
+' "${GREEN} \u2714 All frontend tests passed ${NC}" $'
+' # Use $'...' for ANSI-escaped strings
   PREV_STEP=1
 else
-  echo -e $'\n' "${RED} \u2a2f Some frontend tests failed ${NC}" $'\n'
+  echo -e $'
+' "${RED} \u2a2f Some frontend tests failed ${NC}" $'
+' # Use $'...' for ANSI-escaped strings
   PREV_STEP=0
 fi
 
 if [ $PREV_STEP -eq 1 ];then
-  echo $'\n' "Run build to generate dist files" $'\n'
+  echo $'
+' "Run build to generate dist files" $'
+' # Use $'...' for ANSI-escaped strings
   yarn build
 fi
 
@@ -38,20 +50,28 @@ if [ $PREV_STEP -eq 1 ];then
 
   # Check if the repository is clean
   if [ -z "$git_status" ]; then
+    # Calculate the new version and update package.json
     new_version=$(npm version "$1" --no-git-tag-version)
     new_version=${new_version#v}
 
-    echo "👉 Update version in SDK_VERSION in src/utils.ts and package.json"
+    echo "👉 Update version in SDK_VERSION in src/utils.ts"
     sed -i "s/SimplePay_Rrd_[0-9]\+\.[0-9]\+\.[0-9]\+/SimplePay_Rrd_$new_version/" src/utils.ts
+
+    # Stage the changes
     git add src/utils.ts package.json
+
+    # Commit the version change and create a git tag
     git commit -m "chore: bump version to $new_version"
+    git tag "v$new_version"
+
+    echo "👉 Log in to npmjs.com"
+    npm login
 
     echo "👉 Publishing the new version to npmjs.com"
-    yarn publish --skip-version-check
-    
+    npm publish
+
     echo "👉 Pushing new version to git: $new_version"
-    git push origin main
-    git push origin "v$new_version"
+    git push --follow-tags
 
     # Collect release notes from commits since the last release
     last_release=$(git describe --tags --abbrev=0)
@@ -64,7 +84,9 @@ if [ $PREV_STEP -eq 1 ];then
       --title "v$new_version" \
       --latest
   else
-    echo -e $'\n' "${RED} \u2a2f Repository is not clean. ${NC} Please commit or stash your changes before running this script." $'\n'
+    echo -e $'
+' "${RED} \u2a2f Repository is not clean. ${NC} Please commit or stash your changes before running this script." $'
+' # Use $'...' for ANSI-escaped strings
     exit 1
   fi
 fi
