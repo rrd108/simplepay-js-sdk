@@ -1,7 +1,5 @@
 #!/bin/bash
 
-"
-
 RED='\e[1;41m'
 GREEN='\e[1;42m'
 NC='\033[0m' # No Color
