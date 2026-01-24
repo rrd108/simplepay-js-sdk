@@ -256,6 +256,55 @@ describe('SimplePay Utils Tests', () => {
             expect(lastFieldIndex).toBe(receiveDateIndex)
         })
 
+        it('should preserve numeric data types in IPN response', () => {
+            setEnv()
+            const merchantKey = 'testKey'
+            
+            // Test with numeric transactionId (not string)
+            // This is critical: SimplePay sends numeric values, they must stay numeric
+            const ipnBodyString = '{"r":0,"t":508163884,"e":"SUCCESS","m":"testId","o":"order123"}'
+            const incomingSignature = generateSignature(ipnBodyString, merchantKey)
+            
+            const { responseBody, signature } = handleIpnRequest(ipnBodyString, incomingSignature, merchantKey)
+            
+            // Verify numeric transactionId stays numeric (no quotes around the number)
+            expect(responseBody).toMatch(/"t":508163884,/)
+            expect(responseBody).not.toMatch(/"t":"508163884",/)
+            
+            // Verify response signature is valid
+            const isSignatureValid = checkSignature(responseBody, signature, merchantKey)
+            expect(isSignatureValid).toBeTruthy()
+            
+            // Verify the response can be parsed and numeric value is preserved
+            const parsed = JSON.parse(responseBody)
+            expect(typeof parsed.t).toBe('number')
+            expect(parsed.t).toBe(508163884)
+        })
+
+        it('should preserve string data types in IPN response', () => {
+            setEnv()
+            const merchantKey = 'testKey'
+            
+            // Test with string transactionId
+            const ipnBodyString = '{"r":0,"t":"504233881","e":"SUCCESS","m":"testId","o":"order123"}'
+            const incomingSignature = generateSignature(ipnBodyString, merchantKey)
+            
+            const { responseBody, signature } = handleIpnRequest(ipnBodyString, incomingSignature, merchantKey)
+            
+            // Verify string transactionId stays string (with quotes)
+            expect(responseBody).toMatch(/"t":"504233881",/)
+            expect(responseBody).not.toMatch(/"t":504233881,/)
+            
+            // Verify response signature is valid
+            const isSignatureValid = checkSignature(responseBody, signature, merchantKey)
+            expect(isSignatureValid).toBeTruthy()
+            
+            // Verify the response can be parsed and string value is preserved
+            const parsed = JSON.parse(responseBody)
+            expect(typeof parsed.t).toBe('string')
+            expect(parsed.t).toBe('504233881')
+        })
+
         it('should throw error for invalid incoming IPN signature', () => {
             setEnv()
             const merchantKey = 'testKey'

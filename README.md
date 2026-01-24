@@ -102,11 +102,18 @@ A SimplePay `POST` kérést küld az IPN URL-re, és válaszolnunk kell rá.
 import { handleIpnRequest } from 'simplepay-js-sdk'
 
 // Az IPN végpont kezelőjében (pl. Express, Next.js, stb.)
-const ipnBody = await request.text() // A nyers body stringként (fontos: használd a .text()-et, ne a JSON.parse()-t)
+const ipnBody = await request.text() // A nyers body stringként (FONTOS: használd a .text()-et, ne a JSON.parse()-t)
 const incomingSignature = request.headers.get('Signature')
 const { MERCHANT_KEY } = getSimplePayConfig('HUF') // vagy a te valutád
 
 const { responseBody, signature } = handleIpnRequest(ipnBody, incomingSignature, MERCHANT_KEY)
+
+// KRITIKUS: A responseBody-t pontosan úgy küldd el, ahogy visszaadódott, NE módosítsd!
+// NE:
+// - Formázd újra vagy "szépítsd" a JSON-t
+// - Parse-old és stringify-zd újra a JSON-t
+// - Adj hozzá szóközöket vagy formázást
+// Bármilyen módosítás érvényteleníti az aláírást!
 
 // Válasz küldése HTTP 200 státusszal
 return new Response(responseBody, {

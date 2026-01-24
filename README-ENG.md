@@ -102,11 +102,18 @@ Simplepay will send a `POST` request to the IPN url and you should send a respon
 import { handleIpnRequest } from 'simplepay-js-sdk'
 
 // In your IPN endpoint handler (e.g., Express, Next.js, etc.)
-const ipnBody = await request.text() // Get raw body as string (important: use .text(), not JSON.parse())
+const ipnBody = await request.text() // Get raw body as string (IMPORTANT: use .text(), not JSON.parse())
 const incomingSignature = request.headers.get('Signature')
 const { MERCHANT_KEY } = getSimplePayConfig('HUF') // or your currency
 
 const { responseBody, signature } = handleIpnRequest(ipnBody, incomingSignature, MERCHANT_KEY)
+
+// CRITICAL: Send responseBody exactly as returned, do NOT modify it!
+// Do NOT:
+// - Re-format or pretty-print the JSON
+// - Parse and re-stringify the JSON
+// - Add any whitespace or formatting
+// Any modification will invalidate the signature!
 
 // Send response with HTTP 200 status
 return new Response(responseBody, {
