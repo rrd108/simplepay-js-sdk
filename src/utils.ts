@@ -149,3 +149,73 @@ export const getPaymentResponse = (r: string, signature: string) => {
 
     return response
 }
+
+/**
+ * Handles IPN (Instant Payment Notification) request and generates response
+ * 
+ * This function implements the IPN flow according to SimplePay requirements:
+ * 1. Validates the incoming signature
+ * 2. Adds receiveDate property to the response
+ * 3. Generates response signature
+ * 
+ * @param ipnBody - The raw IPN request body as string (must be the exact string received, not parsed JSON)
+ * @param incomingSignature - The signature from the 'Signature' HTTP header
+ * @param merchantKey - The merchant secret key for signature validation and generation
+ * @returns Object containing the response JSON string and signature to send back
+ * 
+ * @example
+ * // In your IPN endpoint handler:
+ * const ipnBody = await request.text() // Get raw body as string
+ * const incomingSignature = request.headers.get('Signature')
+ * const { responseBody, signature } = handleIpnRequest(ipnBody, incomingSignature, MERCHANT_KEY)
+ * 
+ * // Send response with HTTP 200 status
+ * return new Response(responseBody, {
+ *   status: 200,
+ *   headers: {
+ *     'Content-Type': 'application/json',
+ *     'Signature': signature
+ *   }
+ * })
+ */
+export const handleIpnRequest = (ipnBody: string, incomingSignature: string, merchantKey: string) => {
+    simplepayLogger({ function: 'SimplePay/handleIpnRequest', ipnBody, incomingSignature })
+    
+    // Step 1: Validate incoming signature
+    if (!checkSignature(ipnBody, incomingSignature, merchantKey)) {
+        throw new Error('Invalid IPN request signature')
+    }
+    
+    // Step 2: Validate it's valid JSON (but don't use parsed object to preserve field order)
+    JSON.parse(ipnBody) // Just validate, don't use the result
+    
+    // Step 3: Add receiveDate to the original JSON string while preserving field order
+    // We insert receiveDate before the closing brace to maintain the original field order
+    // This ensures the field order in the response matches the original request
+    const receiveDate = toISO8601DateString(new Date())
+    const trimmedBody = ipnBody.trim()
+    
+    if (!trimmedBody.endsWith('}')) {
+        throw new Error('Invalid IPN body format')
+    }
+    
+    // Remove the closing brace, add receiveDate with comma, then add closing brace back
+    const lastBraceIndex = trimmedBody.lastIndexOf('}')
+    const beforeLastBrace = trimmedBody.substring(0, lastBraceIndex).trim()
+    const receiveDateJson = `"receiveDate":"${receiveDate}"`
+    
+    // Add comma before receiveDate if there's already content
+    const responseBody = beforeLastBrace.length > 1 
+        ? `${beforeLastBrace},${receiveDateJson}}`
+        : `{${receiveDateJson}}`
+    
+    // Step 4: Generate response signature using SHA384 HMAC + Base64
+    const responseSignature = generateSignature(responseBody, merchantKey)
+    
+    simplepayLogger({ function: 'SimplePay/handleIpnRequest', responseBody, responseSignature })
+    
+    return {
+        responseBody,
+        signature: responseSignature
+    }
+}

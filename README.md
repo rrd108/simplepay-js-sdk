@@ -95,12 +95,38 @@ A `response` a következő tulajdonságokkal rendelkezik:
 #### IPN végpont
 
 A SimplePay `POST` kérést küld az IPN URL-re, és válaszolnunk kell rá.
-Ennél a végpontnál a következőket kell tenned:
+
+**Ajánlott megközelítés a `handleIpnRequest` függvénnyel:**
+
+```typescript
+import { handleIpnRequest } from 'simplepay-js-sdk'
+
+// Az IPN végpont kezelőjében (pl. Express, Next.js, stb.)
+const ipnBody = await request.text() // A nyers body stringként (fontos: használd a .text()-et, ne a JSON.parse()-t)
+const incomingSignature = request.headers.get('Signature')
+const { MERCHANT_KEY } = getSimplePayConfig('HUF') // vagy a te valutád
+
+const { responseBody, signature } = handleIpnRequest(ipnBody, incomingSignature, MERCHANT_KEY)
+
+// Válasz küldése HTTP 200 státusszal
+return new Response(responseBody, {
+  status: 200,
+  headers: {
+    'Content-Type': 'application/json',
+    'Signature': signature
+  }
+})
+```
+
+**Manuális megközelítés:**
+
+Ha manuálisan szeretnéd kezelni:
 
 - ellenőrizd az aláírás érvényességét - használd a `checkSignature(ipnBody, signatureHeader, SIMPLEPAY_MERCHANT_KEY_HUF)` függvényt
-- adj hozzá egy `receiveDate` tulajdonságot a kapott JSON-hoz
+- adj hozzá egy `receiveDate` tulajdonságot a kapott JSON-hoz (ISO 8601 formátumban, pl. `2025-10-06T07:00:34+02:00`)
 - számítsd ki az új aláírást - használd a `generateSignature(responseText, SIMPLEPAY_MERCHANT_KEY_HUF)` függvényt
-- küldd el a `response`-t az új `signature`-rel
+- küldd el a `response`-t az új `signature`-rel a HTTP fejlécben (ne a JSON body-ban)
+- **Fontos**: A válasz JSON-nak tömörnek kell lennie (szóközmentes). A `JSON.stringify()` alapból tömör JSON-t ad vissza.
 
 ### Ismétlődő fizetés
 

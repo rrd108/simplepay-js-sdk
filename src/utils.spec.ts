@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { Currency } from './types'
-import { checkSignature, generateSignature, getCurrencyFromMerchantId, getSimplePayConfig } from './utils'
+import { checkSignature, generateSignature, getCurrencyFromMerchantId, getSimplePayConfig, handleIpnRequest } from './utils'
 
 const setEnv = () => {
     process.env.SIMPLEPAY_MERCHANT_ID_HUF = 'testId'
@@ -138,6 +138,186 @@ describe('SimplePay Utils Tests', () => {
             
             const currencySzep = getCurrencyFromMerchantId('testIdSzep')
             expect(currencySzep).toBe('HUF_SZEP')
+        })
+    })
+
+    describe('IPN Response Signature', () => {
+        it('should generate valid signature for IPN response after adding receiveDate', () => {
+            setEnv()
+            const merchantKey = 'testKey'
+            
+            // Simulate incoming IPN request body (compact JSON, no whitespace)
+            const ipnRequestBody = {
+                r: 0,
+                t: '504233881',
+                e: 'SUCCESS',
+                m: 'testId',
+                o: 'test-order-123'
+            }
+            
+            // JSON.stringify produces compact JSON by default (no whitespace)
+            const ipnBodyString = JSON.stringify(ipnRequestBody)
+            
+            // Generate valid incoming signature (as if from SimplePay)
+            const incomingSignature = generateSignature(ipnBodyString, merchantKey)
+            
+            // Step 1: Verify incoming signature is valid
+            const isIncomingSignatureValid = checkSignature(ipnBodyString, incomingSignature, merchantKey)
+            expect(isIncomingSignatureValid).toBeTruthy()
+            
+            // Step 2: Add receiveDate property (as per IPN flow)
+            const ipnResponseBody = {
+                ...ipnRequestBody,
+                receiveDate: new Date().toISOString().replace(/\.\d{3}Z$/, '+00:00')
+            }
+            
+            // JSON.stringify produces compact JSON (no whitespace) - required by SimplePay
+            const ipnResponseBodyString = JSON.stringify(ipnResponseBody)
+            
+            // Step 3: Generate response signature
+            const responseSignature = generateSignature(ipnResponseBodyString, merchantKey)
+            
+            // Step 4: Verify the response signature is valid
+            const isResponseSignatureValid = checkSignature(ipnResponseBodyString, responseSignature, merchantKey)
+            expect(isResponseSignatureValid).toBeTruthy()
+            
+            // Verify response signature is different from incoming signature (since body changed)
+            expect(responseSignature).not.toBe(incomingSignature)
+            
+            // Verify JSON is compact (no whitespace)
+            expect(ipnResponseBodyString).not.toMatch(/\s/)
+        })
+
+        it('should handle IPN request using handleIpnRequest function', () => {
+            setEnv()
+            const merchantKey = 'testKey'
+            
+            // Simulate incoming IPN request body (compact JSON, no whitespace)
+            // Use a specific field order to test that it's preserved
+            const ipnBodyString = '{"r":0,"t":"504233881","e":"SUCCESS","m":"testId","o":"test-order-123"}'
+            const incomingSignature = generateSignature(ipnBodyString, merchantKey)
+            
+            // Use handleIpnRequest function
+            const { responseBody, signature } = handleIpnRequest(ipnBodyString, incomingSignature, merchantKey)
+            
+            // Verify response contains receiveDate
+            const responseData = JSON.parse(responseBody)
+            expect(responseData).toHaveProperty('receiveDate')
+            expect(responseData.r).toBe(0)
+            expect(responseData.t).toBe('504233881')
+            expect(responseData.e).toBe('SUCCESS')
+            expect(responseData.m).toBe('testId')
+            expect(responseData.o).toBe('test-order-123')
+            
+            // Verify response signature is valid
+            const isSignatureValid = checkSignature(responseBody, signature, merchantKey)
+            expect(isSignatureValid).toBeTruthy()
+            
+            // Verify JSON is compact (no whitespace) - required by SimplePay
+            expect(responseBody).not.toMatch(/\s/)
+            
+            // Verify receiveDate is in ISO 8601 format (e.g., 2025-10-06T07:00:34+02:00)
+            expect(responseData.receiveDate).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/)
+            
+            // Verify field order is preserved: original fields come first, receiveDate is last
+            const responseBodyString = responseBody
+            expect(responseBodyString).toMatch(/^\{.*"r":0,.*"t":".*",.*"e":".*",.*"m":".*",.*"o":".*",.*"receiveDate":".*"\}$/)
+            // Verify receiveDate is the last field before closing brace
+            expect(responseBodyString).toMatch(/"receiveDate":"[^"]*"\}$/)
+        })
+
+        it('should preserve field order in IPN response', () => {
+            setEnv()
+            const merchantKey = 'testKey'
+            
+            // Test with a specific field order
+            const ipnBodyString = '{"r":0,"t":"123","e":"SUCCESS","m":"merchantId","o":"order123"}'
+            const incomingSignature = generateSignature(ipnBodyString, merchantKey)
+            
+            const { responseBody } = handleIpnRequest(ipnBodyString, incomingSignature, merchantKey)
+            
+            // Verify the original fields are in the same order
+            const rIndex = responseBody.indexOf('"r":')
+            const tIndex = responseBody.indexOf('"t":')
+            const eIndex = responseBody.indexOf('"e":')
+            const mIndex = responseBody.indexOf('"m":')
+            const oIndex = responseBody.indexOf('"o":')
+            const receiveDateIndex = responseBody.indexOf('"receiveDate":')
+            
+            // Verify order: r < t < e < m < o < receiveDate
+            expect(rIndex).toBeLessThan(tIndex)
+            expect(tIndex).toBeLessThan(eIndex)
+            expect(eIndex).toBeLessThan(mIndex)
+            expect(mIndex).toBeLessThan(oIndex)
+            expect(oIndex).toBeLessThan(receiveDateIndex)
+            
+            // Verify receiveDate is the last field
+            const lastFieldIndex = Math.max(rIndex, tIndex, eIndex, mIndex, oIndex, receiveDateIndex)
+            expect(lastFieldIndex).toBe(receiveDateIndex)
+        })
+
+        it('should throw error for invalid incoming IPN signature', () => {
+            setEnv()
+            const merchantKey = 'testKey'
+            
+            const ipnBodyString = JSON.stringify({ r: 0, t: '123', e: 'SUCCESS', m: 'testId', o: 'test-order' })
+            const invalidSignature = 'invalid-signature'
+            
+            expect(() => {
+                handleIpnRequest(ipnBodyString, invalidSignature, merchantKey)
+            }).toThrow('Invalid IPN request signature')
+        })
+
+        it('should generate valid signature for IPN response with different currencies', () => {
+            setEnv()
+            
+            const testCases = [
+                { currency: 'HUF' as Currency, merchantKey: 'testKey', merchantId: 'testId' },
+                { currency: 'EUR' as Currency, merchantKey: 'secretEuroKey', merchantId: 'merchantEuroId' },
+                { currency: 'HUF_SZEP' as Currency, merchantKey: 'testKeySzep', merchantId: 'testIdSzep' }
+            ]
+            
+            testCases.forEach(({ currency, merchantKey, merchantId }) => {
+                // Use specific field order to test preservation
+                const ipnBodyString = `{"r":0,"t":"504233881","e":"SUCCESS","m":"${merchantId}","o":"test-order-${currency}"}`
+                const incomingSignature = generateSignature(ipnBodyString, merchantKey)
+                
+                // Verify incoming signature
+                expect(checkSignature(ipnBodyString, incomingSignature, merchantKey)).toBeTruthy()
+                
+                // Use handleIpnRequest function
+                const { responseBody, signature } = handleIpnRequest(ipnBodyString, incomingSignature, merchantKey)
+                
+                // Verify response signature
+                expect(checkSignature(responseBody, signature, merchantKey)).toBeTruthy()
+                
+                // Verify JSON is compact (no whitespace)
+                expect(responseBody).not.toMatch(/\s/)
+                
+                // Verify field order is preserved
+                expect(responseBody).toMatch(/^\{.*"r":0,.*"t":".*",.*"e":".*",.*"m":".*",.*"o":".*",.*"receiveDate":".*"\}$/)
+            })
+        })
+
+        it('should reject IPN response with invalid signature', () => {
+            setEnv()
+            const merchantKey = 'testKey'
+            
+            const ipnRequestBody = {
+                r: 0,
+                t: '504233881',
+                e: 'SUCCESS',
+                m: 'testId',
+                o: 'test-order-123',
+                receiveDate: new Date().toISOString().replace(/\.\d{3}Z$/, '+00:00')
+            }
+            
+            // JSON.stringify produces compact JSON (no whitespace)
+            const ipnResponseBodyString = JSON.stringify(ipnRequestBody)
+            const invalidSignature = 'invalid-signature'
+            
+            const isValid = checkSignature(ipnResponseBodyString, invalidSignature, merchantKey)
+            expect(isValid).toBeFalsy()
         })
     })
 })

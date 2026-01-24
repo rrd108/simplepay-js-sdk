@@ -95,12 +95,38 @@ const response = getPaymentResponse(r, s)
 #### IPN Endpoint
 
 Simplepay will send a `POST` request to the IPN url and you should send a response back.
-At this endpoint you should
+
+**Recommended approach using `handleIpnRequest` function:**
+
+```typescript
+import { handleIpnRequest } from 'simplepay-js-sdk'
+
+// In your IPN endpoint handler (e.g., Express, Next.js, etc.)
+const ipnBody = await request.text() // Get raw body as string (important: use .text(), not JSON.parse())
+const incomingSignature = request.headers.get('Signature')
+const { MERCHANT_KEY } = getSimplePayConfig('HUF') // or your currency
+
+const { responseBody, signature } = handleIpnRequest(ipnBody, incomingSignature, MERCHANT_KEY)
+
+// Send response with HTTP 200 status
+return new Response(responseBody, {
+  status: 200,
+  headers: {
+    'Content-Type': 'application/json',
+    'Signature': signature
+  }
+})
+```
+
+**Manual approach:**
+
+If you prefer to handle it manually:
 
 - check if the signature is valid - use `checkSignature(ipnBody, signatureHeader, SIMPLEPAY_MERCHANT_KEY_HUF)`
-- add a `receiveDate` property to the received JSON
+- add a `receiveDate` property to the received JSON (ISO 8601 format, e.g., `2025-10-06T07:00:34+02:00`)
 - calculate the new signature - use `generateSignature(responseText, SIMPLEPAY_MERCHANT_KEY_HUF)`
-- send the `response` with the new `signature`
+- send the `response` with the new `signature` in the HTTP header (not in the JSON body)
+- **Important**: The response JSON must be compact (no whitespace). `JSON.stringify()` produces compact JSON by default.
 
 
 ### Recurring Payment
