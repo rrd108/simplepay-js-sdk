@@ -137,3 +137,17 @@ export interface SimplePayResult {
     orderRef: string,
     tokens?: string[],
 }
+
+export interface SimplePayIPNResponse {
+    salt: string
+    orderRef: string
+    method: string
+    merchant: string
+    finishDate: string
+    paymentDate: string
+    transactionId: number
+    status: 'FINISHED' | 'AUTHORIZED' | 'NOTAUTHORIZED' | 'REVERSED' | 'CANCELLED' | 'TIMEOUT'
+    receiveDate: string
+    expiry?: string
+    cardMask?: string
+}
