@@ -1,6 +1,6 @@
 {
   "name": "simplepay-js-sdk",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "description": "A Node.js utility for SimplePay payment integration",
   "repository": {
     "type": "git",

@@ -16,7 +16,7 @@ export const getSimplePayConfig = (currency: Currency) => {
 
     const SIMPLEPAY_API_URL = 'https://secure.simplepay.hu/payment/v2'
     const SIMPLEPAY_SANDBOX_URL = 'https://sandbox.simplepay.hu/payment/v2'
-    const SDK_VERSION = 'SimplePay_Rrd_0.12.0'
+    const SDK_VERSION = 'SimplePay_Rrd_0.12.1'
     const MERCHANT_KEY = process.env[`SIMPLEPAY_MERCHANT_KEY_${currency}`]
     const MERCHANT_ID = process.env[`SIMPLEPAY_MERCHANT_ID_${currency}`]
 
