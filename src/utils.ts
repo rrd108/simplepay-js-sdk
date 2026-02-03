@@ -126,7 +126,7 @@ const makeRequest = async (apiUrl: string, requestBody: SimplePayRequestBody | S
 
 export const getPaymentResponse = (r: string, signature: string) => {
     simplepayLogger({ function: 'SimplePay/getPaymentResponse', r, signature })
-    signature = decodeURIComponent(signature)
+    signature = signature.replace(/ /g, '+')
     const rDecoded = Buffer.from(r, 'base64').toString('utf-8')
     const rDecodedJSON = JSON.parse(rDecoded) as SimplePayAPIResult
     const currency = getCurrencyFromMerchantId(rDecodedJSON.m)

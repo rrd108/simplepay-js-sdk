@@ -117,6 +117,30 @@ describe('SimplePay Basic Tests', () => {
             
             expect(() => getPaymentResponse(encodedResponse, invalidSignature)).toThrow('Invalid response signature')
         })
+
+        it('should treat space in signature as + (form-urlencoded back redirect)', () => {
+            setEnv()
+            const mockResponse = {
+                r: 0,
+                t: 504233881,
+                e: 'SUCCESS',
+                m: 'merchantEuroId',
+                o: 'test-order'
+            }
+            const encodedResponse = Buffer.from(JSON.stringify(mockResponse)).toString('base64')
+            const signature = generateSignature(JSON.stringify(mockResponse), 'secretEuroKey')
+            const signatureWithSpaces = signature.replace(/\+/g, ' ')
+
+            const result = getPaymentResponse(encodedResponse, signatureWithSpaces)
+
+            expect(result).toEqual({
+                responseCode: 0,
+                transactionId: 504233881,
+                event: 'SUCCESS',
+                merchantId: 'merchantEuroId',
+                orderRef: 'test-order'
+            })
+        })
     })
 
     describe('Basic Card Cancel Test', () => {
