@@ -233,6 +233,14 @@ try {
 }
 ```
 
+## Agent Skill
+
+This library is available as an [Agent Skill](https://skills.sh) for AI coding agents. Install it to give your agent knowledge about SimplePay integration:
+
+```bash
+npx skills add rrd108/simplepay-js-sdk
+```
+
 ## License
 
 MIT

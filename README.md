@@ -231,6 +231,14 @@ try {
 }
 ```
 
+## Agent Skill
+
+Ez a könyvtár elérhető [Agent Skill](https://skills.sh)-ként AI kódoló ágensekhez. Telepítsd, hogy az ágensed ismerje a SimplePay integrációt:
+
+```bash
+npx skills add rrd108/simplepay-js-sdk
+```
+
 ## Licenc
 
 MIT
