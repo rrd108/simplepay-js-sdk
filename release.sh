@@ -44,11 +44,27 @@ require_command npm
 require_command git
 require_command node
 
+# Yarn copies its registry into npm_config_*, which makes npm talk to registry.yarnpkg.com.
+run_npm() {
+  local unset_args=()
+  local name
+  while IFS= read -r name; do
+    unset_args+=("-u" "$name")
+  done < <(compgen -e | grep -E '^(npm_config_|NPM_CONFIG_)' || true)
+
+  if [[ ${#unset_args[@]} -eq 0 ]]; then
+    npm "$@"
+    return
+  fi
+
+  env "${unset_args[@]}" npm "$@"
+}
+
 if ! command -v gh >/dev/null 2>&1; then
   die "GitHub CLI is missing. Install it with: sudo pacman -S github-cli"
 fi
 
-if ! npm whoami >/dev/null 2>&1; then
+if ! run_npm whoami >/dev/null 2>&1; then
   die "Not logged in to npm. Run: npm login --auth-type=web"
 fi
 
@@ -114,7 +130,7 @@ if git rev-parse -q --verify "refs/tags/v${new_version}" >/dev/null; then
   die "Tag v${new_version} already exists."
 fi
 
-published=$(npm view "simplepay-js-sdk@${new_version}" version 2>/dev/null || true)
+published=$(run_npm view "simplepay-js-sdk@${new_version}" version 2>/dev/null || true)
 if [[ -n "$published" ]]; then
   die "simplepay-js-sdk@${new_version} is already published on npm."
 fi
@@ -134,7 +150,7 @@ if [[ "$package_version" != "$new_version" ]]; then
   if [[ ! -f package-lock.json ]]; then
     created_package_lock=1
   fi
-  npm version "$new_version" --no-git-tag-version >/dev/null
+  run_npm version "$new_version" --no-git-tag-version >/dev/null
   if [[ "$created_package_lock" -eq 1 && -f package-lock.json ]]; then
     rm package-lock.json
   elif [[ -f package-lock.json ]]; then
@@ -169,7 +185,7 @@ if ! yarn build; then
 fi
 
 echo "Publishing ${new_version} to npm"
-if ! npm publish; then
+if ! run_npm publish; then
   restore_version_files
   die "npm publish failed. Version files were restored."
 fi
