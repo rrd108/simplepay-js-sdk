@@ -93,6 +93,32 @@ export interface SimplePayCancelCardRequestBody {
     sdkVersion: string
 }
 
+export interface GooglePayPaymentData {
+    orderRef: string
+    total: number | string
+    customerEmail: string
+    googlePayToken: string
+    currency?: Currency
+    language?: Language
+    invoice?: PaymentData['invoice']
+}
+
+export interface SimplePayGooglePayRequestBody {
+    salt: string
+    merchant: string
+    googlePayToken: string
+    sdkVersion: string
+    currency: Currency
+    total: string
+    type: 'CIT'
+    orderRef: string
+    url: string
+    customerEmail: string
+    language: Language
+    timeout: ISO8601DateString
+    invoice?: PaymentData['invoice']
+}
+
 export interface SimplePayResponse {
     salt: string
     merchant: string
@@ -103,6 +129,19 @@ export interface SimplePayResponse {
     total: string
     paymentUrl: string
     errorCodes?: string[]
+}
+
+export interface SimplePayGooglePayResponse {
+    salt?: string
+    merchant: string
+    orderRef: string
+    currency: Currency
+    transactionId: string | number
+    total: string | number
+    timeout?: ISO8601DateString
+    paymentUrl?: string
+    redirectUrl?: string
+    errorCodes?: Array<string | number>
 }
 
 export interface SimplePayRecurringResponse extends SimplePayResponse {

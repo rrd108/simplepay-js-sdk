@@ -135,6 +135,63 @@ Ha manuálisan szeretnéd kezelni:
 - küldd el a `response`-t az új `signature`-rel a HTTP fejlécben (ne a JSON body-ban)
 - **Fontos**: A válasz JSON-nak tömörnek kell lennie (szóközmentes). A `JSON.stringify()` alapból tömör JSON-t ad vissza.
 
+### Google Pay
+
+A kereskedő oldalán megjelenő Google Pay gombhoz a böngészős segéd és a SimplePay `doGooglePay` hívás kell. A rendelést az IPN alapján teljesítsd. 3DS kihívás után a SimplePay a `redirectUrl` címre küldi vissza a vásárlót `r` és `s` paraméterekkel, amit a `getPaymentResponse` ellenőriz. Ha nincs 3DS kihívás, a vásárló a fizetési oldalon marad.
+
+A terhelés összege az a `total`, amit a szerver ad át a `startGooglePay` függvénynek. A Google Pay lapon látható összeg a vásárlónak szól.
+
+Élesítés előtt hozz létre kereskedői profilt a Google Pay & Wallet Console-ban, hagyasd jóvá a pénztár domainjét, és küldd el a Google kereskedői azonosítót a SimplePay-nek. `gatewayMerchantId` értékként a SimplePay kereskedői azonosítót add meg. A sandbox a `TEST` Google Pay környezetet használja.
+
+#### Böngészős gomb
+
+```typescript
+import { renderGooglePayButton } from 'simplepay-js-sdk/google-pay'
+
+await renderGooglePayButton({
+  container: '#google-pay',
+  merchantId: 'YOUR_GOOGLE_MERCHANT_ID',
+  merchantName: 'Shop Name',
+  environment: 'TEST', // TEST | PRODUCTION
+  gatewayMerchantId: 'YOUR_SIMPLEPAY_MERCHANT_ID',
+  authorizationEndpoint: '/api/google-pay',
+  currency: 'HUF',
+  total: '1212',
+  orderRef: 'order-12',
+  onResult: (result) => {
+    console.log(result)
+  },
+  onError: (error) => {
+    console.error(error)
+  },
+})
+```
+
+A gomb a `{ googlePayToken, orderRef }` JSON-t küldi az `authorizationEndpoint` címre. A `googlePayToken` már base64. Ezt az értéket változtatás nélkül add át a `startGooglePay` függvénynek.
+
+#### Szerver
+
+A rendelést a szerveren olvasd ki, és azt az összeget terheld. A SimplePay választ küldd vissza a böngészőnek. Ha a válasz `3004` hibakódot és `redirectUrl` címet tartalmaz, a gomb a 3DS kihívásra viszi a vásárlót.
+
+```typescript
+import { startGooglePay } from 'simplepay-js-sdk'
+
+const order = await loadOrder(orderRef)
+const response = await startGooglePay({
+  orderRef: order.orderRef,
+  total: order.total,
+  currency: 'HUF',
+  customerEmail: order.email,
+  language: 'HU',
+  googlePayToken, // a böngészőből kapott base64 token
+}, {
+  redirectUrl: 'https://yoursite.com/payment/callback',
+})
+return response
+```
+
+A `HUF_SZEP` nem használható Google Pay-hez. Éles környezetben a visszatérési URL abszolút `https` cím legyen.
+
 ### Ismétlődő fizetés
 
 #### Ismétlődő fizetés indítása végpont

@@ -7,7 +7,7 @@ metadata:
   version: "0.12.3"
   organization: SimplePay JS SDK
   date: February 2026
-  abstract: Complete integration guide for the simplepay-js-sdk npm package. Covers one-time payments, recurring payments, token-based payments, IPN handling, card cancellation, and security best practices for Hungary's SimplePay payment gateway.
+  abstract: Complete integration guide for the simplepay-js-sdk npm package. Covers one-time payments, Google Pay, recurring payments, token-based payments, IPN handling, card cancellation, and security best practices for Hungary's SimplePay payment gateway.
 ---
 
 # SimplePay JS SDK - Integration Guide
@@ -18,6 +18,7 @@ A lightweight TypeScript utility for integrating Hungary's SimplePay payments in
 
 - Integrating SimplePay payment gateway in a Node.js or TypeScript project
 - Implementing one-time card payments with SimplePay
+- Adding a merchant-hosted Google Pay button
 - Setting up recurring/subscription payments
 - Handling IPN (Instant Payment Notification) callbacks
 - Processing token-based merchant-initiated payments
@@ -163,6 +164,69 @@ const handleIpn = async (request: Request) => {
 - Any modification to `responseBody` invalidates the signature
 - Always return HTTP 200 with the exact `responseBody` and `Signature` header
 
+## Google Pay
+
+Merchant-hosted Google Pay is a browser button plus `startGooglePay`, which calls `/payment/v2/doGooglePay`. It is separate from `startPayment` with `method: 'CARD'`. Fulfil the order from the IPN. A browser return with `r` and `s` happens only after a 3DS challenge.
+
+The charged amount, currency, email, and return URL come from the merchant server. The Google Pay sheet amount is display-only.
+
+Before production:
+
+- Create a profile in the Google Pay & Wallet Console and copy the Google merchant id
+- Approve the checkout domain with Google
+- Send that Google merchant id to SimplePay
+- Pass the SimplePay merchant id as `gatewayMerchantId`
+- Use Google Pay environment `TEST` against the SimplePay sandbox
+
+### Browser button
+
+```typescript
+import { renderGooglePayButton } from 'simplepay-js-sdk/google-pay'
+
+await renderGooglePayButton({
+  container: '#google-pay',
+  merchantId: 'YOUR_GOOGLE_MERCHANT_ID',
+  merchantName: 'Shop Name',
+  environment: 'TEST',
+  gatewayMerchantId: 'YOUR_SIMPLEPAY_MERCHANT_ID',
+  authorizationEndpoint: '/api/google-pay',
+  currency: 'HUF',
+  total: '1212',
+  orderRef: 'order-12',
+  onResult: (result) => {
+    console.log(result)
+  },
+  onError: (error) => {
+    console.error(error)
+  },
+})
+```
+
+The helper posts `{ googlePayToken, orderRef }` to the merchant endpoint. `googlePayToken` is already `btoa(token)`. Do not encode it again. The helper does not send the merchant key.
+
+### Server call
+
+```typescript
+import { startGooglePay } from 'simplepay-js-sdk'
+
+const order = await loadOrder(orderRef)
+const response = await startGooglePay({
+  orderRef: order.orderRef,
+  total: order.total,
+  currency: 'HUF',
+  customerEmail: order.email,
+  language: 'HU',
+  googlePayToken,
+}, {
+  redirectUrl: 'https://yoursite.com/payment/callback',
+})
+return response
+```
+
+Return this JSON to the browser. When `errorCodes` contains `3004` and `redirectUrl` is present, the helper redirects the customer to the 3DS challenge. Any other `errorCodes` value throws. In production, `redirectUrl` must be absolute `https`. `HUF_SZEP` is rejected.
+
+After 3DS, SimplePay redirects to the `url` sent in this request. Verify `r` and `s` with `getPaymentResponse`. Confirm payment with the existing IPN handler.
+
 ## Recurring Payment Flow
 
 ### Step 1: Register a Card with Recurring Payment
@@ -282,6 +346,8 @@ import type {
   Currency,         // 'HUF' | 'HUF_SZEP' | 'EUR' | 'USD'
   Language,         // 'HU' | 'EN' | 'DE' | ... (16 languages)
   PaymentMethod,    // 'CARD' | 'WIRE'
+  GooglePayPaymentData,
+  SimplePayGooglePayResponse,
   SimplePayResponse,
   SimplePayRecurringResponse,
   SimplePayTokenResponse,

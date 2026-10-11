@@ -5,17 +5,23 @@ import path from 'path'
 export default defineConfig({
     plugins: [
         dts({
-            rollupTypes: true,
-            outDir: 'dist', 
-            include: ['src/**/*']
+            rollupTypes: false,
+            entryRoot: 'src',
+            outDir: 'dist',
+            include: ['src/**/*.ts'],
+            exclude: ['src/**/*.spec.ts'],
         })
     ],
     build: {
         sourcemap: true,
         lib: {
-            entry: path.resolve(__dirname, 'src/index.ts'),
+            entry: {
+                index: path.resolve(__dirname, 'src/index.ts'),
+                googlePayClient: path.resolve(__dirname, 'src/googlePayClient.ts'),
+            },
             name: 'simplepay-js-sdk',
-            fileName: 'index'
+            formats: ['es'],
+            fileName: (_format, entryName) => `${entryName}.js`,
         },
         rolldownOptions: {
             output: [

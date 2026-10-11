@@ -24,12 +24,14 @@ export const getSimplePayConfig = (currency: Currency) => {
     const API_URL_PAYMENT = API_URL + '/start'
     const API_URL_RECURRING = API_URL + '/dorecurring'
     const API_URL_CARD_CANCEL = API_URL + '/cardcancel'
+    const API_URL_GOOGLE_PAY = API_URL + '/doGooglePay'
     return {
         MERCHANT_KEY,
         MERCHANT_ID,
         API_URL_PAYMENT,
         API_URL_RECURRING,
         API_URL_CARD_CANCEL,
+        API_URL_GOOGLE_PAY,
         SDK_VERSION
     }
 }

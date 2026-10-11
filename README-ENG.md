@@ -136,6 +136,63 @@ If you prefer to handle it manually:
 - **Important**: The response JSON must be compact (no whitespace). `JSON.stringify()` produces compact JSON by default.
 
 
+### Google Pay
+
+Merchant-hosted Google Pay uses a browser button and a server call to SimplePay `doGooglePay`. Fulfil the order from the IPN. After a 3DS challenge, SimplePay returns the customer to your `redirectUrl` with `r` and `s`, and `getPaymentResponse` verifies that return. When no 3DS challenge is required, the customer stays on the payment page.
+
+The amount charged is the `total` your server passes to `startGooglePay`. The amount in the Google Pay sheet is what the customer sees.
+
+Before production, create a merchant profile in the Google Pay & Wallet Console, approve your checkout domain, and send the Google merchant id to SimplePay. Use your SimplePay merchant id as `gatewayMerchantId`. Sandbox uses Google Pay environment `TEST`.
+
+#### Browser button
+
+```typescript
+import { renderGooglePayButton } from 'simplepay-js-sdk/google-pay'
+
+await renderGooglePayButton({
+  container: '#google-pay',
+  merchantId: 'YOUR_GOOGLE_MERCHANT_ID',
+  merchantName: 'Shop Name',
+  environment: 'TEST', // TEST | PRODUCTION
+  gatewayMerchantId: 'YOUR_SIMPLEPAY_MERCHANT_ID',
+  authorizationEndpoint: '/api/google-pay',
+  currency: 'HUF',
+  total: '1212',
+  orderRef: 'order-12',
+  onResult: (result) => {
+    console.log(result)
+  },
+  onError: (error) => {
+    console.error(error)
+  },
+})
+```
+
+The button posts `{ googlePayToken, orderRef }` to `authorizationEndpoint`. `googlePayToken` is already base64. Pass that value to `startGooglePay` unchanged.
+
+#### Server
+
+Read the order on the server and charge that total. Return the SimplePay response to the browser. When it contains error code `3004` and `redirectUrl`, the button sends the customer to the 3DS challenge.
+
+```typescript
+import { startGooglePay } from 'simplepay-js-sdk'
+
+const order = await loadOrder(orderRef)
+const response = await startGooglePay({
+  orderRef: order.orderRef,
+  total: order.total,
+  currency: 'HUF',
+  customerEmail: order.email,
+  language: 'HU',
+  googlePayToken, // base64 token from the browser
+}, {
+  redirectUrl: 'https://yoursite.com/payment/callback',
+})
+return response
+```
+
+`HUF_SZEP` is not available for Google Pay. In production the return URL must be absolute `https`.
+
 ### Recurring Payment
 
 #### Start Recurring Payment Endpoint
