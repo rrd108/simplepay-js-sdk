@@ -25,6 +25,8 @@ export const getSimplePayConfig = (currency: Currency) => {
     const API_URL_RECURRING = API_URL + '/dorecurring'
     const API_URL_CARD_CANCEL = API_URL + '/cardcancel'
     const API_URL_GOOGLE_PAY = API_URL + '/doGooglePay'
+    const API_URL_APPLE_PAY_START = API_URL + '/startapplepay'
+    const API_URL_APPLE_PAY_DO = API_URL + '/doapplepay'
     return {
         MERCHANT_KEY,
         MERCHANT_ID,
@@ -32,6 +34,8 @@ export const getSimplePayConfig = (currency: Currency) => {
         API_URL_RECURRING,
         API_URL_CARD_CANCEL,
         API_URL_GOOGLE_PAY,
+        API_URL_APPLE_PAY_START,
+        API_URL_APPLE_PAY_DO,
         SDK_VERSION
     }
 }

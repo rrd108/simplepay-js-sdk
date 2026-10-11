@@ -144,6 +144,82 @@ export interface SimplePayGooglePayResponse {
     errorCodes?: Array<string | number>
 }
 
+export interface ApplePayStartData {
+    orderRef: string
+    total: number | string
+    customerEmail: string
+    domain: string
+    currency?: Currency
+    language?: Language
+    invoice?: PaymentData['invoice']
+}
+
+export interface ApplePayChargeData {
+    transactionId: string | number
+    applePayToken: string
+    currency?: Currency
+}
+
+export interface ApplePayMerchantSession {
+    epochTimestamp?: number
+    expiresAt?: number
+    merchantSessionIdentifier: string
+    nonce?: string
+    merchantIdentifier?: string
+    domainName?: string
+    displayName?: string
+    signature?: string
+    operationalAnalyticsIdentifier?: string
+    retries?: number
+    pspId?: string
+}
+
+export interface SimplePayApplePayStartRequestBody {
+    salt: string
+    merchant: string
+    orderRef: string
+    currency: Currency
+    domain: string
+    sdkVersion: string
+    total: string
+    customerEmail: string
+    language: Language
+    timeout: ISO8601DateString
+    invoice?: PaymentData['invoice']
+}
+
+export interface SimplePayApplePayStartResponse {
+    salt?: string
+    merchant: string
+    orderRef?: string
+    currency?: Currency
+    transactionId: string | number
+    total?: string | number
+    timeout?: ISO8601DateString
+    applePaySession?: ApplePayMerchantSession
+    errorCodes?: Array<string | number>
+}
+
+export interface SimplePayApplePayChargeRequestBody {
+    salt: string
+    merchant: string
+    transactionId: number
+    applePayToken: string
+    sdkVersion: string
+    currency: Currency
+}
+
+export interface SimplePayApplePayChargeResponse {
+    salt?: string
+    merchant: string
+    orderRef?: string
+    currency?: Currency
+    transactionId: string | number
+    total?: string | number
+    applePayStatus?: string
+    errorCodes?: Array<string | number>
+}
+
 export interface SimplePayRecurringResponse extends SimplePayResponse {
     tokens: string[]
 }

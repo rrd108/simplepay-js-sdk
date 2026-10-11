@@ -7,7 +7,7 @@ metadata:
   version: "0.12.3"
   organization: SimplePay JS SDK
   date: February 2026
-  abstract: Complete integration guide for the simplepay-js-sdk npm package. Covers one-time payments, Google Pay, recurring payments, token-based payments, IPN handling, card cancellation, and security best practices for Hungary's SimplePay payment gateway.
+  abstract: Complete integration guide for the simplepay-js-sdk npm package. Covers one-time payments, Google Pay, Apple Pay, recurring payments, token-based payments, IPN handling, card cancellation, and security best practices for Hungary's SimplePay payment gateway.
 ---
 
 # SimplePay JS SDK - Integration Guide
@@ -19,6 +19,7 @@ A lightweight TypeScript utility for integrating Hungary's SimplePay payments in
 - Integrating SimplePay payment gateway in a Node.js or TypeScript project
 - Implementing one-time card payments with SimplePay
 - Adding a merchant-hosted Google Pay button
+- Adding a merchant-hosted Apple Pay button
 - Setting up recurring/subscription payments
 - Handling IPN (Instant Payment Notification) callbacks
 - Processing token-based merchant-initiated payments
@@ -226,6 +227,72 @@ return response
 Return this JSON to the browser. When `errorCodes` contains `3004` and `redirectUrl` is present, the helper redirects the customer to the 3DS challenge. Any other `errorCodes` value throws. In production, `redirectUrl` must be absolute `https`. `HUF_SZEP` is rejected.
 
 After 3DS, SimplePay redirects to the `url` sent in this request. Verify `r` and `s` with `getPaymentResponse`. Confirm payment with the existing IPN handler.
+
+## Apple Pay
+
+Merchant-hosted Apple Pay is a browser button plus two server calls. `startApplePay` calls `/payment/v2/startapplepay` and returns an `applePaySession` for `completeMerchantValidation`. `doApplePay` calls `/payment/v2/doapplepay` with the base64 payment token. It is separate from `startPayment` with `method: 'CARD'`. Fulfil the order from the IPN. There is no 3DS browser return.
+
+The charged amount, currency, email, and registered domain come from the merchant server. The Apple Pay sheet amount is display-only.
+
+Before production:
+
+- Register the checkout FQDN on the Apple Pay tab in the SimplePay admin
+- Host the association file at `https://<domain>/.well-known/apple-developer-merchantid-domain-association`
+- Copy the Apple Pay merchant identifier from that admin page into `merchantIdentifier`
+- The button renders in Safari when Apple Pay is available
+
+### Browser button
+
+```typescript
+import { renderApplePayButton } from 'simplepay-js-sdk/apple-pay'
+
+await renderApplePayButton({
+  container: '#apple-pay',
+  merchantIdentifier: 'YOUR_APPLE_PAY_MERCHANT_IDENTIFIER',
+  merchantName: 'Shop Name',
+  validationEndpoint: '/api/apple-pay/validate',
+  authorizationEndpoint: '/api/apple-pay/authorize',
+  currency: 'HUF',
+  total: '1212',
+  orderRef: 'order-12',
+  onResult: (result) => {
+    console.log(result)
+  },
+  onError: (error) => {
+    console.error(error)
+  },
+})
+```
+
+The helper posts `{ orderRef, domain }` to the validation endpoint. `domain` is `location.hostname`. Compare it with the FQDN registered at SimplePay, then call `startApplePay` with that registered domain and the order loaded on the server. Return the SimplePay JSON, including `transactionId` and `applePaySession`, unchanged.
+
+The helper then posts `{ orderRef, transactionId, applePayToken }` to the authorization endpoint. `applePayToken` is already base64 of the Apple payment token. Do not encode it again. The helper does not send the merchant key. Confirm `transactionId` belongs to this order before calling `doApplePay`.
+
+### Server calls
+
+```typescript
+import { doApplePay, startApplePay } from 'simplepay-js-sdk'
+
+const order = await loadOrder(orderRef)
+const session = await startApplePay({
+  orderRef: order.orderRef,
+  total: order.total,
+  currency: 'HUF',
+  customerEmail: order.email,
+  language: 'HU',
+  domain: 'shop.example.com',
+})
+return session
+
+const payment = await doApplePay({
+  transactionId,
+  applePayToken,
+  currency: 'HUF',
+})
+return payment
+```
+
+`startApplePay` throws when `domain` is not an FQDN, when `errorCodes` is present, or when `applePaySession.merchantSessionIdentifier` is missing. `doApplePay` accepts only a base64 `applePayToken` and a positive integer `transactionId`. It throws unless `applePayStatus` is `STATUS_SUCCESS`. `HUF_SZEP` is rejected. Confirm payment with the existing IPN handler.
 
 ## Recurring Payment Flow
 

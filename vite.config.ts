@@ -18,6 +18,7 @@ export default defineConfig({
             entry: {
                 index: path.resolve(__dirname, 'src/index.ts'),
                 googlePayClient: path.resolve(__dirname, 'src/googlePayClient.ts'),
+                applePayClient: path.resolve(__dirname, 'src/applePayClient.ts'),
             },
             name: 'simplepay-js-sdk',
             formats: ['es'],

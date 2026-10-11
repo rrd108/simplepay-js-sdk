@@ -18,6 +18,11 @@
       "types": "./dist/googlePayClient.d.ts",
       "browser": "./dist/googlePayClient.js",
       "import": "./dist/googlePayClient.js"
+    },
+    "./apple-pay": {
+      "types": "./dist/applePayClient.d.ts",
+      "browser": "./dist/applePayClient.js",
+      "import": "./dist/applePayClient.js"
     }
   },
   "types": "./dist/index.d.ts",

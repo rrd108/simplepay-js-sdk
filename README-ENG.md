@@ -193,6 +193,77 @@ return response
 
 `HUF_SZEP` is not available for Google Pay. In production the return URL must be absolute `https`.
 
+### Apple Pay
+
+Merchant-hosted Apple Pay uses a browser button and two SimplePay calls, `startapplepay` then `doapplepay`. Fulfil the order from the IPN. The payment finishes inside the Apple Pay sheet.
+
+The amount charged is the `total` your server passes to `startApplePay`. The amount in the Apple Pay sheet is what the customer sees.
+
+Before production, register the checkout domain on the Apple Pay tab in the SimplePay admin. Host the downloaded association file at `https://<domain>/.well-known/apple-developer-merchantid-domain-association`. `domain` is that registered FQDN, for example `shop.example.com`. `merchantIdentifier` is the Apple Pay merchant identifier shown in the SimplePay admin. The button is shown in Safari.
+
+#### Browser button
+
+```typescript
+import { renderApplePayButton } from 'simplepay-js-sdk/apple-pay'
+
+await renderApplePayButton({
+  container: '#apple-pay',
+  merchantIdentifier: 'YOUR_APPLE_PAY_MERCHANT_IDENTIFIER',
+  merchantName: 'Shop Name',
+  validationEndpoint: '/api/apple-pay/validate',
+  authorizationEndpoint: '/api/apple-pay/authorize',
+  currency: 'HUF',
+  total: '1212',
+  orderRef: 'order-12',
+  onResult: (result) => {
+    console.log(result)
+  },
+  onError: (error) => {
+    console.error(error)
+  },
+})
+```
+
+The button posts `{ orderRef, domain }` to `validationEndpoint`. `domain` is the browser hostname. Pass your own registered domain to `startApplePay`, and return the response containing `transactionId` and `applePaySession`.
+
+After the customer selects a card, the button posts `{ orderRef, transactionId, applePayToken }` to `authorizationEndpoint`. `applePayToken` is already base64. Pass that value to `doApplePay` unchanged. `transactionId` must belong to the session started for this order.
+
+#### Server
+
+Read the order on the server and charge that total. The posted domain is only a check: send the registered FQDN to SimplePay.
+
+```typescript
+import { doApplePay, startApplePay } from 'simplepay-js-sdk'
+
+const order = await loadOrder(orderRef)
+if (domain !== 'shop.example.com') {
+  throw new Error('Unregistered Apple Pay domain')
+}
+
+const session = await startApplePay({
+  orderRef: order.orderRef,
+  total: order.total,
+  currency: 'HUF',
+  customerEmail: order.email,
+  language: 'HU',
+  domain: 'shop.example.com',
+})
+return session
+```
+
+Confirm `transactionId` belongs to this order before charging.
+
+```typescript
+const payment = await doApplePay({
+  transactionId,
+  applePayToken,
+  currency: 'HUF',
+})
+return payment
+```
+
+`HUF_SZEP` is not available for Apple Pay. The charge succeeded when `applePayStatus` is `STATUS_SUCCESS`.
+
 ### Recurring Payment
 
 #### Start Recurring Payment Endpoint

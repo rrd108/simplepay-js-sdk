@@ -192,6 +192,77 @@ return response
 
 A `HUF_SZEP` nem használható Google Pay-hez. Éles környezetben a visszatérési URL abszolút `https` cím legyen.
 
+### Apple Pay
+
+A kereskedő oldalán megjelenő Apple Pay gombhoz a böngészős segéd és két SimplePay hívás kell: `startapplepay`, majd `doapplepay`. A rendelést az IPN alapján teljesítsd. A fizetés az Apple Pay lapon zárul.
+
+A terhelés összege az a `total`, amit a szerver ad át a `startApplePay` függvénynek. Az Apple Pay lapon látható összeg a vásárlónak szól.
+
+Élesítés előtt regisztráld a pénztár domainjét a SimplePay admin Apple Pay lapján. A letöltött ellenőrző fájl ezen a címen legyen elérhető: `https://<domain>/.well-known/apple-developer-merchantid-domain-association`. A `domain` a regisztrált FQDN, például `shop.example.com`. A `merchantIdentifier` a SimplePay adminon megjelenő Apple Pay kereskedői azonosító. A gomb Safariban jelenik meg.
+
+#### Böngészős gomb
+
+```typescript
+import { renderApplePayButton } from 'simplepay-js-sdk/apple-pay'
+
+await renderApplePayButton({
+  container: '#apple-pay',
+  merchantIdentifier: 'YOUR_APPLE_PAY_MERCHANT_IDENTIFIER',
+  merchantName: 'Shop Name',
+  validationEndpoint: '/api/apple-pay/validate',
+  authorizationEndpoint: '/api/apple-pay/authorize',
+  currency: 'HUF',
+  total: '1212',
+  orderRef: 'order-12',
+  onResult: (result) => {
+    console.log(result)
+  },
+  onError: (error) => {
+    console.error(error)
+  },
+})
+```
+
+A gomb a `{ orderRef, domain }` JSON-t küldi a `validationEndpoint` címre. A `domain` a böngésző hostneve. A szerver a saját, regisztrált domainjét adja át a `startApplePay` függvénynek, és a `transactionId` valamint `applePaySession` mezőket tartalmazó választ küldi vissza.
+
+Sikeres kártyaválasztás után a gomb a `{ orderRef, transactionId, applePayToken }` JSON-t küldi az `authorizationEndpoint` címre. Az `applePayToken` már base64. Ezt az értéket változtatás nélkül add át a `doApplePay` függvénynek. A `transactionId` csak az ehhez a rendeléshez indított munkamenethez tartozhat.
+
+#### Szerver
+
+A rendelést a szerveren olvasd ki, és azt az összeget terheld. A klienstől kapott domain csak ellenőrzésre való: a SimplePay felé a regisztrált FQDN menjen.
+
+```typescript
+import { doApplePay, startApplePay } from 'simplepay-js-sdk'
+
+const order = await loadOrder(orderRef)
+if (domain !== 'shop.example.com') {
+  throw new Error('Unregistered Apple Pay domain')
+}
+
+const session = await startApplePay({
+  orderRef: order.orderRef,
+  total: order.total,
+  currency: 'HUF',
+  customerEmail: order.email,
+  language: 'HU',
+  domain: 'shop.example.com',
+})
+return session
+```
+
+A terhelés előtt ellenőrizd, hogy a `transactionId` ehhez a rendeléshez tartozik.
+
+```typescript
+const payment = await doApplePay({
+  transactionId,
+  applePayToken,
+  currency: 'HUF',
+})
+return payment
+```
+
+A `HUF_SZEP` nem használható Apple Pay-hez. A fizetés akkor sikeres, ha az `applePayStatus` értéke `STATUS_SUCCESS`.
+
 ### Ismétlődő fizetés
 
 #### Ismétlődő fizetés indítása végpont

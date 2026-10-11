@@ -60,7 +60,7 @@ if [ $PREV_STEP -eq 1 ];then
     git tag "v$new_version"
 
     echo "👉 Log in to npmjs.com"
-    npm login
+    npm login --auth-type=web
 
     echo "👉 Publishing the new version to npmjs.com"
     npm publish
