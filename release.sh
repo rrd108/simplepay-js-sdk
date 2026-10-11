@@ -11,10 +11,10 @@ die() {
 }
 
 usage() {
-  echo "Usage: $0 patch|minor|current"
-  echo "  current  publish the version already in package.json"
-  echo "  patch    bump the patch version, then publish"
-  echo "  minor    bump the minor version, then publish"
+  echo "Usage: $0 patch|minor|major"
+  echo "  patch  bump the patch version from the latest tag, then publish"
+  echo "  minor  bump the minor version from the latest tag, then publish"
+  echo "  major  bump the major version from the latest tag, then publish"
 }
 
 cd "$(dirname "$0")"
@@ -25,7 +25,7 @@ if [[ -z "$release_type" ]]; then
   exit 1
 fi
 
-if [[ "$release_type" != "patch" && "$release_type" != "minor" && "$release_type" != "current" ]]; then
+if [[ "$release_type" != "patch" && "$release_type" != "minor" && "$release_type" != "major" ]]; then
   echo "Invalid version type: ${release_type}" >&2
   usage
   exit 1
@@ -82,6 +82,8 @@ if (releaseType === 'patch') {
   console.log(`${major}.${minor}.${patch + 1}`)
 } else if (releaseType === 'minor') {
   console.log(`${major}.${minor + 1}.0`)
+} else if (releaseType === 'major') {
+  console.log(`${major + 1}.0.0`)
 } else {
   throw new Error(`Unsupported release type: ${releaseType}`)
 }
@@ -95,21 +97,17 @@ fi
 
 last_tag=$(git describe --tags --abbrev=0)
 last_version="${last_tag#v}"
-
-if [[ "$release_type" == "current" ]]; then
-  if [[ "$package_version" == "$last_version" ]]; then
-    die "${package_version} is already tagged as ${last_tag}."
-  fi
-  new_version="$package_version"
-else
-  if [[ "$package_version" != "$last_version" ]]; then
-    die "package.json is ${package_version} and the latest tag is ${last_tag}. Publish it with: $0 current"
-  fi
-  new_version=$(next_version "$package_version" "$release_type")
+if [[ ! "$last_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  die "Latest tag ${last_tag} is not x.y.z."
 fi
 
+new_version=$(next_version "$last_version" "$release_type")
 if [[ ! "$new_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   die "Refusing to release invalid version: ${new_version}"
+fi
+
+if [[ "$package_version" != "$new_version" && "$package_version" != "$last_version" ]]; then
+  die "package.json is ${package_version}. ${release_type} from ${last_tag} is ${new_version}."
 fi
 
 if git rev-parse -q --verify "refs/tags/v${new_version}" >/dev/null; then
@@ -132,7 +130,7 @@ echo -e "${GREEN} All tests passed ${NC}"
 release_notes=$(git log "${last_tag}..HEAD" --pretty="%s" | awk '/^(feat|fix|docs|test|chore|refactor|style)/ { print "* " $0 }')
 
 created_package_lock=0
-if [[ "$release_type" != "current" ]]; then
+if [[ "$package_version" != "$new_version" ]]; then
   if [[ ! -f package-lock.json ]]; then
     created_package_lock=1
   fi
