@@ -17,7 +17,7 @@ export default defineConfig({
             name: 'simplepay-js-sdk',
             fileName: 'index'
         },
-        rollupOptions: {
+        rolldownOptions: {
             output: [
                 {
                     format: 'es',
