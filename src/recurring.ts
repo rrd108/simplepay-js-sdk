@@ -1,6 +1,6 @@
 import crypto from 'crypto'
 import { SimplePayRecurringRequestBody, RecurringPaymentData, TokenPaymentData, SimplePayTokenRequestBody, SimplePayCancelCardRequestBody, Currency} from './types'
-import { getSimplePayConfig, simplepayLogger, toISO8601DateString, makeSimplePayTokenRequest, makeSimplePayRecurringRequest, makeSimplePayRequest, makeSimplePayCancelCardRequest} from './utils'
+import { getSimplePayConfig, simplepayLogger, toISO8601DateString, makeSimplePayTokenRequest, makeSimplePayRecurringRequest, makeSimplePayRequest, makeSimplePayCancelCardRequest, resolveRedirectUrl} from './utils'
 
 const INTERVAL_IN_MONTHS = 6
 const DEFAULT_UNTIL = new Date(Date.now() + INTERVAL_IN_MONTHS * 30 * 24 * 60 * 60 * 1000)
@@ -35,7 +35,7 @@ const startRecurringPayment = async (paymentData: RecurringPaymentData) => {
         threeDSReqAuthMethod: '02', 
         total: String(paymentData.total),
         timeout: toISO8601DateString(new Date(Date.now() + 30 * 60 * 1000)),
-        url: process.env.SIMPLEPAY_REDIRECT_URL || 'http://url.to.redirect',
+        url: resolveRedirectUrl(),
         invoice: paymentData.invoice,
     }
 
@@ -67,7 +67,7 @@ const startTokenPayment = async (paymentData: TokenPaymentData) => {
         threeDSReqAuthMethod: '02',
         total: String(paymentData.total),
         timeout: toISO8601DateString(new Date(Date.now() + 30 * 60 * 1000)),
-        url: process.env.SIMPLEPAY_REDIRECT_URL || 'http://recurring.url.to.redirect',
+        url: resolveRedirectUrl(),
         invoice: paymentData.invoice,
     }
 

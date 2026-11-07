@@ -1,6 +1,6 @@
 import crypto from 'crypto'
 import { Currency, PaymentConfig, PaymentData, SimplePayRequestBody } from './types'
-import { simplepayLogger, getSimplePayConfig, toISO8601DateString, makeSimplePayRequest } from './utils'
+import { simplepayLogger, getSimplePayConfig, toISO8601DateString, makeSimplePayRequest, resolveRedirectUrl } from './utils'
 
 const startPayment = async (paymentData: PaymentData, config: PaymentConfig = {}) => {
     simplepayLogger({ function: 'SimplePay/startPayment', orderRef: paymentData.orderRef })
@@ -23,7 +23,7 @@ const startPayment = async (paymentData: PaymentData, config: PaymentConfig = {}
         methods: [paymentData.method || 'CARD'],
         total: String(paymentData.total),
         timeout: toISO8601DateString(new Date(Date.now() + 30 * 60 * 1000)),
-        url: config.redirectUrl || process.env.SIMPLEPAY_REDIRECT_URL || 'http://url.to.redirect',
+        url: resolveRedirectUrl(config.redirectUrl),
         invoice: paymentData.invoice,
     }
 

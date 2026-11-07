@@ -66,6 +66,25 @@ describe('SimplePay SDK Tests', () => {
             await expect(startPayment(paymentData)).resolves.toBeDefined()
         })
 
+        it('should require an https return url in production', async () => {
+            setEnv()
+            process.env.SIMPLEPAY_PRODUCTION = 'true'
+            const fetchSpy = vi.fn()
+            global.fetch = fetchSpy as unknown as typeof fetch
+
+            try {
+                delete process.env.SIMPLEPAY_REDIRECT_URL
+                await expect(startPayment(paymentData)).rejects.toThrow('absolute https')
+
+                process.env.SIMPLEPAY_REDIRECT_URL = 'http://example.com/back'
+                await expect(startPayment(paymentData)).rejects.toThrow('absolute https')
+                expect(fetchSpy).not.toHaveBeenCalled()
+            } finally {
+                delete process.env.SIMPLEPAY_PRODUCTION
+                delete process.env.SIMPLEPAY_REDIRECT_URL
+            }
+        })
+
         it('should not trust errorCodes from an unsigned response', async () => {
             setEnv()
             global.fetch = vi.fn().mockResolvedValue({

@@ -1,16 +1,8 @@
 import crypto from 'crypto'
 import { GooglePayPaymentData, PaymentConfig, SimplePayGooglePayRequestBody, SimplePayGooglePayResponse } from './types'
-import { checkSignature, generateSignature, getSimplePayConfig, prepareRequestBody, simplepayLogger, toISO8601DateString } from './utils'
+import { checkSignature, generateSignature, getSimplePayConfig, prepareRequestBody, resolveRedirectUrl, simplepayLogger, toISO8601DateString } from './utils'
 
 const THREE_DS_CHALLENGE_CODE = '3004'
-
-const isAbsoluteHttpsUrl = (url: string) => {
-    try {
-        return new URL(url).protocol === 'https:'
-    } catch {
-        return false
-    }
-}
 
 const isGooglePayThreeDsChallenge = (response: SimplePayGooglePayResponse) => {
     if (typeof response.redirectUrl !== 'string' || response.redirectUrl.length === 0) {
@@ -84,10 +76,7 @@ const startGooglePay = async (paymentData: GooglePayPaymentData, config: Payment
         throw new Error(`Missing SimplePay configuration for ${currency}`)
     }
 
-    const url = config.redirectUrl || process.env.SIMPLEPAY_REDIRECT_URL || 'http://url.to.redirect'
-    if (process.env.SIMPLEPAY_PRODUCTION === 'true' && !isAbsoluteHttpsUrl(url)) {
-        throw new Error('Google Pay return url must be absolute https in production')
-    }
+    const url = resolveRedirectUrl(config.redirectUrl)
 
     const requestBody: SimplePayGooglePayRequestBody = {
         salt: crypto.randomBytes(16).toString('hex'),

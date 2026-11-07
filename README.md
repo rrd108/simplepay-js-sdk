@@ -31,7 +31,7 @@ pnpm add simplepay-js-sdk
 - `SIMPLEPAY_MERCHANT_KEY_HUF` A te SimplePay titkos kereskedői kulcsod. Állítsd be a `SIMPLEPAY_MERCHANT_KEY_HUF_SZEP` értéket SZÉP kártyás fizetésekhez. Állítsd be a `SIMPLEPAY_MERCHANT_KEY_EUR` és `SIMPLEPAY_MERCHANT_KEY_USD` értékeket EUR és USD fizetések elfogadásához.
 - `SIMPLEPAY_MERCHANT_ID_HUF` A SimplePay kereskedői azonosítód. Állítsd be a `SIMPLEPAY_MERCHANT_ID_HUF_SZEP` értéket SZÉP kártyás fizetésekhez. Állítsd be a `SIMPLEPAY_MERCHANT_ID_EUR` és `SIMPLEPAY_MERCHANT_ID_USD` értékeket EUR és USD fizetések elfogadásához.
 - `SIMPLEPAY_PRODUCTION` Ha `true`-ra van állítva, éles környezetet használ, egyébként teszt környezetet.
-- `SIMPLEPAY_REDIRECT_URL` A weboldalad URL-je, ahova a vásárló átirányításra kerül a fizetés után. Ez a fizetés indításakor is megadható, így különböző redirect url-eket definiálhatsz különböző fizetésekhez.
+- `SIMPLEPAY_REDIRECT_URL` A weboldalad URL-je, ahova a vásárló átirányításra kerül a fizetés után. Ez a fizetés indításakor is megadható, így különböző redirect url-eket definiálhatsz különböző fizetésekhez. Ha `SIMPLEPAY_PRODUCTION=true`, kötelező, és abszolút `https` URL-nek kell lennie.
 
 ## Használat
 
@@ -61,7 +61,7 @@ try {
       address: 'Sehol u. 0',
     },
   }, {
-    redirectUrl: 'http://url.to.redirect' // opcionális, alapértelmezetten a SIMPLEPAY_REDIRECT_URL környezeti változó értéke
+    redirectUrl: 'https://url.to.redirect' // opcionális, alapértelmezetten a SIMPLEPAY_REDIRECT_URL környezeti változó értéke
   })
   return response
 } catch (error) {

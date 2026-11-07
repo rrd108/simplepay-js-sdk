@@ -40,6 +40,30 @@ export const getSimplePayConfig = (currency: Currency) => {
     }
 }
 
+const SANDBOX_REDIRECT_URL = 'http://url.to.redirect'
+
+const isAbsoluteHttpsUrl = (url: string) => {
+    try {
+        return new URL(url).protocol === 'https:'
+    } catch {
+        return false
+    }
+}
+
+// In production the return url must be set and absolute https; the sandbox keeps a placeholder fallback.
+export const resolveRedirectUrl = (redirectUrl?: string) => {
+    const url = redirectUrl || process.env.SIMPLEPAY_REDIRECT_URL
+    if (process.env.SIMPLEPAY_PRODUCTION !== 'true') {
+        return url || SANDBOX_REDIRECT_URL
+    }
+
+    if (!url || !isAbsoluteHttpsUrl(url)) {
+        throw new Error('SimplePay return url must be absolute https in production')
+    }
+
+    return url
+}
+
 // escaping slashes for the request body to prevent strange SimplePay API errors (eg Missing Signature)
 export const prepareRequestBody = (body: any) =>
     JSON.stringify(body).replace(/\//g, '\\/')
