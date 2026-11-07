@@ -45,7 +45,12 @@ export const prepareRequestBody = (body: any) =>
     JSON.stringify(body).replace(/\//g, '\\/')
 
 export const generateSignature = (body: string, merchantKey: string) => {
-    const hmac = crypto.createHmac('sha384', merchantKey.trim())
+    const key = typeof merchantKey === 'string' ? merchantKey.trim() : ''
+    if (!key) {
+        throw new Error('Missing merchant key')
+    }
+
+    const hmac = crypto.createHmac('sha384', key)
     hmac.update(body, 'utf8')
     return hmac.digest('base64')
 }
@@ -136,8 +141,11 @@ export const getPaymentResponse = (r: string, signature: string) => {
     const rDecodedJSON = JSON.parse(rDecoded) as SimplePayAPIResult
     const currency = getCurrencyFromMerchantId(rDecodedJSON.m)
     const { MERCHANT_KEY } = getSimplePayConfig(currency as Currency)
+    if (!MERCHANT_KEY) {
+        throw new Error(`Missing SimplePay configuration for ${currency}`)
+    }
 
-    if (!checkSignature(rDecoded, signature, MERCHANT_KEY || '')) {
+    if (!checkSignature(rDecoded, signature, MERCHANT_KEY)) {
         simplepayLogger({ function: 'SimplePay/getPaymentResponse', error: 'Invalid response signature', orderRef: rDecodedJSON.o })
         throw new Error('Invalid response signature')
     }

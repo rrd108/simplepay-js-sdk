@@ -1,3 +1,4 @@
+import crypto from 'crypto'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { Currency } from './types'
 import { checkSignature, generateSignature, getCurrencyFromMerchantId, getSimplePayConfig, handleIpnRequest } from './utils'
@@ -315,6 +316,15 @@ describe('SimplePay Utils Tests', () => {
             expect(() => {
                 handleIpnRequest(ipnBodyString, invalidSignature, merchantKey)
             }).toThrow('Invalid IPN request signature')
+        })
+
+        it('should refuse an empty merchant key instead of accepting an empty-key HMAC', () => {
+            const ipnBodyString = JSON.stringify({ r: 0, t: '123', e: 'SUCCESS', m: 'testId', o: 'test-order' })
+            const forged = crypto.createHmac('sha384', '').update(ipnBodyString, 'utf8').digest('base64')
+
+            expect(() => handleIpnRequest(ipnBodyString, forged, '')).toThrow('Missing merchant key')
+            expect(() => handleIpnRequest(ipnBodyString, forged, '   ')).toThrow('Missing merchant key')
+            expect(() => checkSignature(ipnBodyString, forged, undefined as unknown as string)).toThrow('Missing merchant key')
         })
 
         it('should generate valid signature for IPN response with different currencies', () => {

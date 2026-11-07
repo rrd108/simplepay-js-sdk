@@ -1,3 +1,4 @@
+import crypto from 'crypto'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { getPaymentResponse, startPayment } from './index'
 
@@ -116,6 +117,20 @@ describe('SimplePay SDK Tests', () => {
             expect(() =>
                 getPaymentResponse(encodedResponse, 'invalid-signature')
             ).toThrow('Invalid response signature')
+        })
+
+        it('should reject a redirect signed with an empty key when the merchant key is missing', () => {
+            setEnv()
+            process.env.SIMPLEPAY_MERCHANT_ID_USD = 'merchantUsdId'
+            const body = JSON.stringify({ r: 0, t: 1, e: 'SUCCESS', m: 'merchantUsdId', o: 'forged' })
+            const forged = crypto.createHmac('sha384', '').update(body, 'utf8').digest('base64')
+            const r = Buffer.from(body).toString('base64')
+
+            try {
+                expect(() => getPaymentResponse(r, forged)).toThrow('Missing SimplePay configuration for USD')
+            } finally {
+                delete process.env.SIMPLEPAY_MERCHANT_ID_USD
+            }
         })
     })
 })
