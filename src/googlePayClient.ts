@@ -81,10 +81,9 @@ declare global {
     }
 }
 
-const isHttpUrl = (url: string) => {
+const isHttpsUrl = (url: string) => {
     try {
-        const protocol = new URL(url).protocol
-        return protocol === 'https:' || protocol === 'http:'
+        return new URL(url).protocol === 'https:'
     } catch {
         return false
     }
@@ -220,7 +219,7 @@ const handleAuthorizationResult = (config: GooglePayButtonConfig, body: unknown)
         return
     }
 
-    if (!isHttpUrl(body.redirectUrl)) {
+    if (!isHttpsUrl(body.redirectUrl)) {
         throw new Error('Invalid Google Pay redirect url')
     }
 

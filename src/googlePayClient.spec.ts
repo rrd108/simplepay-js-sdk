@@ -159,4 +159,33 @@ describe('renderGooglePayButton', () => {
         expect(replace).toHaveBeenCalledWith('https://sb-checkout.simplepay.hu/pay/challenge')
         expect(onResult).not.toHaveBeenCalled()
     })
+
+    it('should refuse a 3DS challenge redirect that is not https', async () => {
+        installGooglePay()
+        isReadyToPay.mockResolvedValue({ result: true })
+        loadPaymentData.mockResolvedValue({
+            paymentMethodData: { tokenizationData: { token: 'google-pay-token' } },
+        })
+        const onError = vi.fn()
+        vi.mocked(fetch).mockResolvedValue({
+            ok: true,
+            json: vi.fn().mockResolvedValue({
+                errorCodes: [3004],
+                redirectUrl: 'http://sb-checkout.simplepay.hu/pay/challenge',
+            }),
+        } as unknown as Response)
+        const container = { appendChild: vi.fn() }
+
+        await renderGooglePayButton({
+            ...buttonConfig,
+            container: container as unknown as HTMLElement,
+            onError,
+        })
+
+        const button = container.appendChild.mock.calls[0][0] as { click: () => Promise<void> }
+        await button.click()
+
+        expect(replace).not.toHaveBeenCalled()
+        expect(onError.mock.calls[0][0].message).toBe('Invalid Google Pay redirect url')
+    })
 })
