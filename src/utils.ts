@@ -55,8 +55,19 @@ export const generateSignature = (body: string, merchantKey: string) => {
     return hmac.digest('base64')
 }
 
-export const checkSignature = (responseText: string, signature: string, merchantKey: string) =>
-    signature === generateSignature(responseText, merchantKey)
+export const checkSignature = (responseText: string, signature: string, merchantKey: string) => {
+    const expected = Buffer.from(generateSignature(responseText, merchantKey), 'utf8')
+    if (typeof signature !== 'string') {
+        return false
+    }
+
+    const received = Buffer.from(signature, 'utf8')
+    if (received.length !== expected.length) {
+        return false
+    }
+
+    return crypto.timingSafeEqual(received, expected)
+}
 
 export const toISO8601DateString = (date: Date): ISO8601DateString => date.toISOString().replace(/\.\d{3}Z$/, '+00:00')
 

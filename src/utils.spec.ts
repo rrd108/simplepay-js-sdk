@@ -318,6 +318,16 @@ describe('SimplePay Utils Tests', () => {
             }).toThrow('Invalid IPN request signature')
         })
 
+        it('should return false for missing or wrong-length signatures', () => {
+            const body = '{"r":0}'
+            const valid = generateSignature(body, 'testKey')
+
+            expect(checkSignature(body, valid, 'testKey')).toBe(true)
+            expect(checkSignature(body, valid.slice(0, -1), 'testKey')).toBe(false)
+            expect(checkSignature(body, '', 'testKey')).toBe(false)
+            expect(checkSignature(body, null as unknown as string, 'testKey')).toBe(false)
+        })
+
         it('should refuse an empty merchant key instead of accepting an empty-key HMAC', () => {
             const ipnBodyString = JSON.stringify({ r: 0, t: '123', e: 'SUCCESS', m: 'testId', o: 'test-order' })
             const forged = crypto.createHmac('sha384', '').update(ipnBodyString, 'utf8').digest('base64')
