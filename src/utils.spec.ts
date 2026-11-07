@@ -318,6 +318,26 @@ describe('SimplePay Utils Tests', () => {
             }).toThrow('Invalid IPN request signature')
         })
 
+        it('should append receiveDate to the top-level object when the body has nested braces', () => {
+            const ipnBodyString = JSON.stringify({ r: 0, o: 'order}1', meta: { a: 1 }, t: '123' })
+            const incomingSignature = generateSignature(ipnBodyString, 'testKey')
+
+            const { responseBody, signature } = handleIpnRequest(ipnBodyString, incomingSignature, 'testKey')
+            const parsed = JSON.parse(responseBody)
+
+            expect(parsed.o).toBe('order}1')
+            expect(parsed.meta).toEqual({ a: 1 })
+            expect(responseBody.startsWith(ipnBodyString.slice(0, -1) + ',"receiveDate":"')).toBe(true)
+            expect(checkSignature(responseBody, signature, 'testKey')).toBe(true)
+        })
+
+        it('should reject an IPN body that is not a JSON object', () => {
+            const ipnBodyString = '[1,2]'
+            const incomingSignature = generateSignature(ipnBodyString, 'testKey')
+
+            expect(() => handleIpnRequest(ipnBodyString, incomingSignature, 'testKey')).toThrow('Invalid IPN request body')
+        })
+
         it('should return false for missing or wrong-length signatures', () => {
             const body = '{"r":0}'
             const valid = generateSignature(body, 'testKey')

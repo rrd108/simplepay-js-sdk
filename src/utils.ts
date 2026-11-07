@@ -221,23 +221,24 @@ export const handleIpnRequest = (ipnBody: string, incomingSignature: string, mer
         throw new Error('Invalid IPN request signature')
     }
     
-    // Step 2: Validate it's valid JSON (but don't use parsed object to preserve field order and data types)
-    JSON.parse(ipnBody) // Just validate, don't use the result
-    
+    // Step 2: Validate it's a JSON object (but don't use parsed object to preserve field order and data types)
+    const parsed = JSON.parse(ipnBody)
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        throw new Error('Invalid IPN request body')
+    }
+
     // Step 3: Add receiveDate to the original JSON string while preserving:
     // - Exact field order
     // - Exact data types (numeric vs string)
     // - No whitespace (compact JSON)
-    // 
-    // Use the same simple approach as the working solution:
-    // Replace the closing brace with: ,"receiveDate":"${receiveDate}"}
-    // This preserves the exact original format and field order
+    // Insert before the object's own closing brace, which is the last '}' in the body.
+    // The first '}' could belong to a nested object or sit inside a string value.
     const receiveDate = toISO8601DateString(new Date())
-    
-    // Simple string replacement: replace the first (and only) closing brace
-    // This is the same approach as the working solution
-    const responseBody = ipnBody.replace('}', `,"receiveDate":"${receiveDate}"}`)
-    
+    const body = ipnBody.trimEnd()
+    const closingBrace = body.length - 1
+    const separator = Object.keys(parsed).length > 0 ? ',' : ''
+    const responseBody = `${body.slice(0, closingBrace)}${separator}"receiveDate":"${receiveDate}"}`
+
     // Step 4: Generate response signature using SHA384 HMAC + Base64
     // The signature must be calculated on the exact string that will be sent
     const responseSignature = generateSignature(responseBody, merchantKey)
