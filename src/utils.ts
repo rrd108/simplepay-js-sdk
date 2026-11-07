@@ -87,7 +87,7 @@ export const makeSimplePayCancelCardRequest = async (apiUrl: string, requestBody
 const makeRequest = async (apiUrl: string, requestBody: SimplePayRequestBody | SimplePayRecurringRequestBody | SimplePayTokenRequestBody | SimplePayCancelCardRequestBody, merchantKey: string, type: 'oneTime' | 'recurring' | 'token' | 'cancelCard') => {
     const bodyString = prepareRequestBody(requestBody)
     const signature = generateSignature(bodyString, merchantKey)
-    simplepayLogger({ function: `SimplePay/makeRequest/${type}`, bodyString, signature })
+    simplepayLogger({ function: `SimplePay/makeRequest/${type}`, apiUrl, orderRef: (requestBody as { orderRef?: string }).orderRef })
 
     try {
         const response = await fetch(apiUrl, {
@@ -99,21 +99,20 @@ const makeRequest = async (apiUrl: string, requestBody: SimplePayRequestBody | S
             body: bodyString,
         })
 
-        simplepayLogger({ function: `SimplePay/makeRequest/${type}`, response })
+        simplepayLogger({ function: `SimplePay/makeRequest/${type}`, status: response.status })
 
         if (!response.ok) {
             throw new Error(`SimplePay API error: ${response.status}`)
         }
 
         const responseSignature = response.headers.get('Signature')
-        simplepayLogger({ function: `SimplePay/makeRequest/${type}`, responseSignature })
         if (!responseSignature) {
             throw new Error('Missing response signature')
         }
 
         const responseText = await response.text()
         const responseJSON = JSON.parse(responseText) as { errorCodes?: string[] }
-        simplepayLogger({ function: `SimplePay/makeRequest/${type}`, responseText, responseJSON })
+        simplepayLogger({ function: `SimplePay/makeRequest/${type}`, errorCodes: responseJSON.errorCodes })
 
         if (responseJSON.errorCodes) {
             throw new Error(`SimplePay API error: ${responseJSON.errorCodes}`)
@@ -131,7 +130,7 @@ const makeRequest = async (apiUrl: string, requestBody: SimplePayRequestBody | S
 }
 
 export const getPaymentResponse = (r: string, signature: string) => {
-    simplepayLogger({ function: 'SimplePay/getPaymentResponse', r, signature })
+    simplepayLogger({ function: 'SimplePay/getPaymentResponse' })
     signature = signature.replace(/ /g, '+')
     const rDecoded = Buffer.from(r, 'base64').toString('utf-8')
     const rDecodedJSON = JSON.parse(rDecoded) as SimplePayAPIResult
@@ -139,7 +138,7 @@ export const getPaymentResponse = (r: string, signature: string) => {
     const { MERCHANT_KEY } = getSimplePayConfig(currency as Currency)
 
     if (!checkSignature(rDecoded, signature, MERCHANT_KEY || '')) {
-        simplepayLogger({ function: 'SimplePay/getPaymentResponse', rDecoded, signature })
+        simplepayLogger({ function: 'SimplePay/getPaymentResponse', error: 'Invalid response signature', orderRef: rDecodedJSON.o })
         throw new Error('Invalid response signature')
     }
 
@@ -196,8 +195,8 @@ export const getPaymentResponse = (r: string, signature: string) => {
  * })
  */
 export const handleIpnRequest = (ipnBody: string, incomingSignature: string, merchantKey: string) => {
-    simplepayLogger({ function: 'SimplePay/handleIpnRequest', ipnBody, incomingSignature })
-    
+    simplepayLogger({ function: 'SimplePay/handleIpnRequest' })
+
     // Step 1: Validate incoming signature
     if (!checkSignature(ipnBody, incomingSignature, merchantKey)) {
         throw new Error('Invalid IPN request signature')
@@ -224,7 +223,7 @@ export const handleIpnRequest = (ipnBody: string, incomingSignature: string, mer
     // The signature must be calculated on the exact string that will be sent
     const responseSignature = generateSignature(responseBody, merchantKey)
     
-    simplepayLogger({ function: 'SimplePay/handleIpnRequest', responseBody, responseSignature })
+    simplepayLogger({ function: 'SimplePay/handleIpnRequest', receiveDate })
     
     return {
         responseBody,

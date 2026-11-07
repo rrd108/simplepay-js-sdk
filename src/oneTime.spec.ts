@@ -64,6 +64,26 @@ describe('SimplePay SDK Tests', () => {
 
             await expect(startPayment(paymentData)).resolves.toBeDefined()
         })
+
+        it('should not log the merchant key or customer email when logging is on', async () => {
+            setEnv()
+            process.env.SIMPLEPAY_LOGGER = 'true'
+            const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+            global.fetch = vi.fn().mockResolvedValue({
+                ok: true,
+                status: 200,
+                headers: { get: vi.fn().mockReturnValue('mockSignature') },
+                text: vi.fn().mockResolvedValue('{}')
+            }) as unknown as typeof fetch
+
+            await expect(startPayment(paymentData)).rejects.toThrow()
+            const output = JSON.stringify(log.mock.calls)
+            log.mockRestore()
+            delete process.env.SIMPLEPAY_LOGGER
+
+            expect(output).not.toContain('testKey')
+            expect(output).not.toContain(paymentData.customerEmail)
+        })
     })
 
     describe('getPaymentResponse', () => {

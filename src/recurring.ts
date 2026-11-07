@@ -8,10 +8,10 @@ const DEFAULT_MAX_AMOUNT = 12000
 const DEFAULT_TIMES = 3
 
 const startRecurringPayment = async (paymentData: RecurringPaymentData) => {
-    simplepayLogger({ function: 'SimplePay/startRecurringPayment', paymentData })
+    simplepayLogger({ function: 'SimplePay/startRecurringPayment', orderRef: paymentData.orderRef })
     const currency = paymentData.currency || 'HUF'
     const { MERCHANT_KEY, MERCHANT_ID, API_URL_PAYMENT, SDK_VERSION } = getSimplePayConfig(currency)
-    simplepayLogger({ function: 'SimplePay/startRecurringPayment', MERCHANT_KEY, MERCHANT_ID, API_URL_PAYMENT })
+    simplepayLogger({ function: 'SimplePay/startRecurringPayment', MERCHANT_ID, API_URL_PAYMENT })
 
     if (!MERCHANT_KEY || !MERCHANT_ID) {
         throw new Error(`Missing SimplePay configuration for ${currency}`)
@@ -43,10 +43,10 @@ const startRecurringPayment = async (paymentData: RecurringPaymentData) => {
 }
 
 const startTokenPayment = async (paymentData: TokenPaymentData) => {
-    simplepayLogger({ function: 'SimplePay/startTokenPayment', paymentData })
+    simplepayLogger({ function: 'SimplePay/startTokenPayment', orderRef: paymentData.orderRef })
     const currency = paymentData.currency || 'HUF'
     const { MERCHANT_KEY, MERCHANT_ID, API_URL_RECURRING, SDK_VERSION } = getSimplePayConfig(currency)
-    simplepayLogger({ function: 'SimplePay/startTokenPayment', MERCHANT_KEY, MERCHANT_ID, API_URL_RECURRING })
+    simplepayLogger({ function: 'SimplePay/startTokenPayment', MERCHANT_ID, API_URL_RECURRING })
 
     if (!MERCHANT_KEY || !MERCHANT_ID) {
         throw new Error(`Missing SimplePay configuration for ${currency}`)
