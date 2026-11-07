@@ -40,6 +40,9 @@ export const getSimplePayConfig = (currency: Currency) => {
     }
 }
 
+// Abort calls to SimplePay that hang, so requests do not pile up on the merchant server.
+export const REQUEST_TIMEOUT_MS = 30_000
+
 const SANDBOX_REDIRECT_URL = 'http://url.to.redirect'
 
 const isAbsoluteHttpsUrl = (url: string) => {
@@ -137,6 +140,7 @@ const makeRequest = async (apiUrl: string, requestBody: SimplePayRequestBody | S
                 'Signature': signature,
             },
             body: bodyString,
+            signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
         })
 
         simplepayLogger({ function: `SimplePay/makeRequest/${type}`, status: response.status })

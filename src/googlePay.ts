@@ -1,6 +1,6 @@
 import crypto from 'crypto'
 import { GooglePayPaymentData, PaymentConfig, SimplePayGooglePayRequestBody, SimplePayGooglePayResponse } from './types'
-import { checkSignature, generateSignature, getSimplePayConfig, prepareRequestBody, resolveRedirectUrl, simplepayLogger, toISO8601DateString } from './utils'
+import { checkSignature, generateSignature, getSimplePayConfig, prepareRequestBody, REQUEST_TIMEOUT_MS, resolveRedirectUrl, simplepayLogger, toISO8601DateString } from './utils'
 
 const THREE_DS_CHALLENGE_CODE = '3004'
 
@@ -28,6 +28,7 @@ const makeGooglePayRequest = async (apiUrl: string, requestBody: SimplePayGoogle
             'Signature': signature,
         },
         body: bodyString,
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     })
 
     const responseSignature = response.headers.get('Signature')

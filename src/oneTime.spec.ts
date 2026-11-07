@@ -85,6 +85,15 @@ describe('SimplePay SDK Tests', () => {
             }
         })
 
+        it('should send SimplePay requests with a timeout signal', async () => {
+            setEnv()
+            const fetchSpy = vi.fn().mockRejectedValue(new Error('stop'))
+            global.fetch = fetchSpy as unknown as typeof fetch
+
+            await expect(startPayment(paymentData)).rejects.toThrow('stop')
+            expect(fetchSpy.mock.calls[0][1].signal).toBeInstanceOf(AbortSignal)
+        })
+
         it('should not trust errorCodes from an unsigned response', async () => {
             setEnv()
             global.fetch = vi.fn().mockResolvedValue({

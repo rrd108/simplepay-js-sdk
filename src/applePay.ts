@@ -1,6 +1,6 @@
 import crypto from 'crypto'
 import { ApplePayChargeData, ApplePayMerchantSession, ApplePayStartData, SimplePayApplePayChargeRequestBody, SimplePayApplePayChargeResponse, SimplePayApplePayStartRequestBody, SimplePayApplePayStartResponse } from './types'
-import { checkSignature, generateSignature, getSimplePayConfig, prepareRequestBody, simplepayLogger, toISO8601DateString } from './utils'
+import { checkSignature, generateSignature, getSimplePayConfig, prepareRequestBody, REQUEST_TIMEOUT_MS, simplepayLogger, toISO8601DateString } from './utils'
 
 const MAX_APPLE_PAY_TOKEN_LENGTH = 100_000
 const APPLE_PAY_SUCCESS = 'STATUS_SUCCESS'
@@ -55,6 +55,7 @@ const makeApplePayRequest = async <TResponse extends { errorCodes?: Array<string
             'Signature': signature,
         },
         body: bodyString,
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     })
 
     const responseSignature = response.headers.get('Signature')
