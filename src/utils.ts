@@ -127,15 +127,15 @@ const makeRequest = async (apiUrl: string, requestBody: SimplePayRequestBody | S
         }
 
         const responseText = await response.text()
+        if (!checkSignature(responseText, responseSignature, merchantKey)) {
+            throw new Error('Invalid response signature')
+        }
+
         const responseJSON = JSON.parse(responseText) as { errorCodes?: string[] }
         simplepayLogger({ function: `SimplePay/makeRequest/${type}`, errorCodes: responseJSON.errorCodes })
 
         if (responseJSON.errorCodes) {
             throw new Error(`SimplePay API error: ${responseJSON.errorCodes}`)
-        }
-
-        if (!checkSignature(responseText, responseSignature, merchantKey)) {
-            throw new Error('Invalid response signature')
         }
 
         return responseJSON

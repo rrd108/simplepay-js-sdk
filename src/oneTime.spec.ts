@@ -66,6 +66,18 @@ describe('SimplePay SDK Tests', () => {
             await expect(startPayment(paymentData)).resolves.toBeDefined()
         })
 
+        it('should not trust errorCodes from an unsigned response', async () => {
+            setEnv()
+            global.fetch = vi.fn().mockResolvedValue({
+                ok: true,
+                status: 200,
+                headers: { get: vi.fn().mockReturnValue('bogus') },
+                text: vi.fn().mockResolvedValue(JSON.stringify({ errorCodes: ['attacker message'] }))
+            }) as unknown as typeof fetch
+
+            await expect(startPayment(paymentData)).rejects.toThrow('Invalid response signature')
+        })
+
         it('should not log the merchant key or customer email when logging is on', async () => {
             setEnv()
             process.env.SIMPLEPAY_LOGGER = 'true'
